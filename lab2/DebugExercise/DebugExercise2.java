@@ -7,10 +7,7 @@ package DebugExercise;
 public class DebugExercise2 {
     /** Returns the max of a and b. Do not step into this function. */
     public static int max(int a, int b) {
-        if (a > b) {
-            return a;
-        }
-        return b;
+        return Math.max(a, b);
     }
 
 
