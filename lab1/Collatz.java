@@ -3,6 +3,11 @@
  */
 public class Collatz {
 
+    /**
+     * Compute the next number in the Collatz sequence.
+     * @param n
+     * @return Next number in the Collatz sequence.
+     */
     public static int nextNumber(int n) {
         if (n % 2 == 0) {
             // If the number is even, divide it by two.
