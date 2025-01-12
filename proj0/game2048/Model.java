@@ -142,7 +142,8 @@ public class Model extends Observable {
         for (int col = 0; col < length; col++) {
             for (int row = 0; row < length; row++) {
                 // Check if the tile is empty.
-                if (b.tile(col, row) == null) {
+                Tile tile = b.tile(col, row);
+                if (tile == null) {
                     return true;
                 }
             }
@@ -156,7 +157,17 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        int length = b.size(); // Side length of the square board.
+        // Iterate over each column and row of the board.
+        for (int col = 0; col < length; col++) {
+            for (int row = 0; row < length; row++) {
+                // Check if the tile is equal to the maximum value.
+                Tile tile = b.tile(col, row);
+                if (tile != null && tile.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
