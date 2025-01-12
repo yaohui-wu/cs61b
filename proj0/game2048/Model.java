@@ -141,8 +141,8 @@ public class Model extends Observable {
         // Iterate over each column and row of the board.
         for (int col = 0; col < length; col++) {
             for (int row = 0; row < length; row++) {
-                // Check if the tile is empty.
                 Tile tile = b.tile(col, row);
+                // Check if the tile is empty.
                 if (tile == null) {
                     return true;
                 }
@@ -157,12 +157,11 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        int length = b.size(); // Side length of the square board.
-        // Iterate over each column and row of the board.
+        int length = b.size();
         for (int col = 0; col < length; col++) {
             for (int row = 0; row < length; row++) {
-                // Check if the tile is equal to the maximum value.
                 Tile tile = b.tile(col, row);
+                // Check if the tile is equal to the maximum value.
                 if (tile != null && tile.value() == MAX_PIECE) {
                     return true;
                 }
@@ -178,7 +177,32 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+        // Board has no empty space.
+        int length = b.size();
+        for (int col = 0; col < length; col++) {
+            for (int row = 0; row < length; row++) {
+                int val = b.tile(col, row).value(); // Current tile value.
+                // Check the left tile if it exists.
+                if (col - 1 >= 0 && val == b.tile(col - 1, row).value()) {
+                    return true;
+                }
+                // Check the right tile if it exists.
+                if (col + 1 < length && val == b.tile(col + 1, row).value()) {
+                    return true;
+                }
+                // Check the top tile if it exists.
+                if (row - 1 >= 0 && val == b.tile(col, row - 1).value()) {
+                    return true;
+                }
+                // Check the buttom tile if it exists.
+                if (row + 1 < length && val == b.tile(col, row + 1).value()) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
