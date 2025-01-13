@@ -30,7 +30,7 @@ public class TimeAList {
             AList<Integer> list = new AList<>();
             Stopwatch stopwatch = new Stopwatch();
             int opCount = 0;
-            for (int i = 1; i <= N; i++) {
+            for (int i = 0; i < N; i++) {
                 list.addLast(i);
                 opCount++;
             }
