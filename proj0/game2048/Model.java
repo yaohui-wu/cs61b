@@ -113,6 +113,30 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        board.setViewingPerspective(side);
+        int length = board.size();
+        for (int col = 0; col < length; col++) {
+            for (int row = length - 1; row > 0; row--) {
+                boolean merged = false;
+                for (int i = row - 1; i >= 0; i--) {
+                    Tile tile = board.tile(col, row);
+                    Tile t = board.tile(col, i);
+                    if (t != null) {
+                        if (tile == null) {
+                            board.move(col, row, t);
+                            changed = true;
+                        } else if (!merged && tile.value() == t.value()) {
+                            board.move(col, row, t);
+                            merged = true;
+                            changed = true;
+                            Tile newTile = board.tile(col, row);
+                            score += newTile.value();
+                        }
+                    }
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
@@ -184,21 +208,22 @@ public class Model extends Observable {
         int length = b.size();
         for (int col = 0; col < length; col++) {
             for (int row = 0; row < length; row++) {
-                int val = b.tile(col, row).value(); // Current tile value.
+                Tile tile = b.tile(col, row); // Current tile.
+                int value = tile.value();
                 // Check the left tile if it exists.
-                if (col - 1 >= 0 && val == b.tile(col - 1, row).value()) {
+                if (col - 1 >= 0 && value == b.tile(col - 1, row).value()) {
                     return true;
                 }
                 // Check the right tile if it exists.
-                if (col + 1 < length && val == b.tile(col + 1, row).value()) {
+                if (col + 1 < length && value == b.tile(col + 1, row).value()) {
                     return true;
                 }
                 // Check the top tile if it exists.
-                if (row - 1 >= 0 && val == b.tile(col, row - 1).value()) {
+                if (row + 1 >= 0 && value == b.tile(col, row + 1).value()) {
                     return true;
                 }
-                // Check the buttom tile if it exists.
-                if (row + 1 < length && val == b.tile(col, row + 1).value()) {
+                // Check the bottom tile if it exists.
+                if (row - 1 < length && value == b.tile(col, row - 1).value()) {
                     return true;
                 }
             }
