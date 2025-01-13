@@ -116,21 +116,20 @@ public class Model extends Observable {
         board.setViewingPerspective(side);
         int length = board.size();
         for (int col = 0; col < length; col++) {
+            // Iterate starting from the top row.
             for (int row = length - 1; row > 0; row--) {
-                boolean merged = false;
-                for (int i = row - 1; i >= 0; i--) {
+                for (int nextRow = row - 1; nextRow >= 0; nextRow--) {
                     Tile tile = board.tile(col, row);
-                    Tile t = board.tile(col, i);
-                    if (t != null) {
-                        if (tile == null) {
-                            board.move(col, row, t);
+                    Tile nextTile = board.tile(col, nextRow);
+                    if (nextTile != null) {
+                        if (tile == null || tile.value() == nextTile.value()) {
+                            if (board.move(col, row, nextTile)) {
+                                // The next tile merges with the current tile.
+                                Tile newTile = board.tile(col, row);
+                                score += newTile.value();
+                                row--;
+                            }
                             changed = true;
-                        } else if (!merged && tile.value() == t.value()) {
-                            board.move(col, row, t);
-                            merged = true;
-                            changed = true;
-                            Tile newTile = board.tile(col, row);
-                            score += newTile.value();
                         }
                     }
                 }
@@ -219,11 +218,11 @@ public class Model extends Observable {
                     return true;
                 }
                 // Check the top tile if it exists.
-                if (row + 1 >= 0 && value == b.tile(col, row + 1).value()) {
+                if (row + 1 < length && value == b.tile(col, row + 1).value()) {
                     return true;
                 }
                 // Check the bottom tile if it exists.
-                if (row - 1 < length && value == b.tile(col, row - 1).value()) {
+                if (row - 1 >= 0 && value == b.tile(col, row - 1).value()) {
                     return true;
                 }
             }
