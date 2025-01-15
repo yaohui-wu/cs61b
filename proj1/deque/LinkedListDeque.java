@@ -5,7 +5,6 @@ package deque;
  *  @author Yaohui Wu
  */
 public class LinkedListDeque<T> {
-
     public class Node {
         private T item;
         private Node previous;
@@ -17,7 +16,6 @@ public class LinkedListDeque<T> {
             this.next = next;
         }
     }
-
 
     private Node sentinel;
     private int size;
@@ -40,7 +38,7 @@ public class LinkedListDeque<T> {
         Node current = new Node(item, sentinel, first); // New first Node.
         first.previous = current;
         sentinel.next = current;
-        size++;
+        size += 1;
     }
 
     /** Adds an item of type T to the back of the deque in constant time. */
@@ -49,7 +47,7 @@ public class LinkedListDeque<T> {
         Node current = new Node(item, last, sentinel); // New last node.
         last.next = current;
         sentinel.previous = current;
-        size++;
+        size += 1;
     }
 
     /** Returns true if the deque is empty, false otherwise. */
@@ -63,7 +61,7 @@ public class LinkedListDeque<T> {
      */
     public void printDeque() {
         Node current = sentinel.next;
-        for (int i = 0; i < size - 1; i++) {
+        for (int i = 0; i < size - 1; i += 1) {
             System.out.print(current.item + " ");
             current = current.next;
         }
@@ -71,26 +69,28 @@ public class LinkedListDeque<T> {
     }
 
     /** Removes and returns the item at the front of the deque. If no such
-     *  item exists, returns null. */
+     *  item exists, returns null.
+     */
     public T removeFirst() {
         if (isEmpty()) { return null; }
         Node current = sentinel.next; // Old first node.
         Node first = current.next; // New first node.
         first.previous = sentinel;
         sentinel.next = first;
-        size--;
+        size -= 1;
         return current.item;
     }
 
     /** Removes and returns the item at the back of the deque. If no such item
-     *  exists, returns null. */
+     *  exists, returns null.
+     */
     public T removeLast() {
         if (isEmpty()) { return null; }
         Node current = sentinel.previous; // Old last node.
         Node last = current.previous; // New last node.
         last.next = sentinel;
         sentinel.previous = last;
-        size--;
+        size -= 1;
         return current.item;
     }
 
@@ -101,7 +101,7 @@ public class LinkedListDeque<T> {
     public T get(int index) {
         if (index >= size) { return null; }
         Node current = sentinel.next;
-        for (int i = 0; i < index; i++) {
+        for (int i = 0; i < index; i += 1) {
             current = current.next;
         }
         return current.item;
