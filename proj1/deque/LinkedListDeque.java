@@ -8,13 +8,13 @@ public class LinkedListDeque<T> {
 
     public class Node {
         private T item;
-        private Node next;
         private Node previous;
+        private Node next;
 
         public Node(T item) {
             this.item = item;
-            next = null;
             previous = null;
+            next = null;
         }
     }
 
@@ -24,28 +24,28 @@ public class LinkedListDeque<T> {
 
     public LinkedListDeque() {
         sentinel = new Node(null);
-        sentinel.next = sentinel;
         sentinel.previous = sentinel;
+        sentinel.next = sentinel;
         size = 0;
     }
 
     public void addFirst(T item) {
-        Node first = new Node(item);
-        Node current = sentinel.next;
-        current.previous = first;
-        first.next = current;
-        first.previous = sentinel;
-        sentinel.next = first;
+        Node current = new Node(item);
+        Node first = sentinel.next;
+        first.previous = current;
+        current.next = first;
+        current.previous = sentinel;
+        sentinel.next = current;
         size++;
     }
 
     public void addLast(T item) {
-        Node last = new Node(item);
-        Node current = sentinel.previous;
-        current.next = last;
-        last.previous = current;
-        last.next = sentinel;
-        sentinel.previous = last;
+        Node current = new Node(item);
+        Node last = sentinel.previous;
+        last.next = current;
+        current.previous = last;
+        current.next = sentinel;
+        sentinel.previous = current;
         size++;
     }
 
@@ -64,13 +64,21 @@ public class LinkedListDeque<T> {
 
     public T removeFirst() {
         if (size <= 0) { return null; }
+        Node current = sentinel.next;
+        Node first = current.next;
+        first.previous = sentinel;
+        sentinel.next = first;
         size--;
-        return null;
+        return current.item;
     }
 
     public T removeLast() {
         if (size <= 0) { return null; }
+        Node current = sentinel.previous;
+        Node last = current.previous;
+        last.next = sentinel;
+        sentinel.previous = last;
         size--;
-        return null;
+        return current.item;
     }
 }
