@@ -1,12 +1,13 @@
 package deque;
 
 import java.lang.Math;
+import java.util.Iterator;
 
 /** Implementation of a deque (double-ended queue) using a resizable circular
  *  array.
  *  @author Yaohui Wu
  */
-public class ArrayDeque<T> implements Deque<T> {
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int capacity; // Size of the array.
     private T[] items;
     private int size; // Size of the deque.
@@ -23,7 +24,9 @@ public class ArrayDeque<T> implements Deque<T> {
         nextLast = nextFirst + 1;
     }
 
-    public void resize() {}
+    public void resize() {
+        return;
+    }
 
     public int arrayIndex(int index) {
         if (index < 0 || index >= size) {
@@ -119,13 +122,13 @@ public class ArrayDeque<T> implements Deque<T> {
 
     /** Returns an iterator of the deque. */
     public Iterator<T> iterator() {
-        return new LinkedListDequeIterator();
+        return new ArrayDequeIterator();
     }
 
-    private class LinkedListDequeIterator implements Iterator<T> {
+    private class ArrayDequeIterator implements Iterator<T> {
         private int position;
 
-        public LinkedListDequeIterator() {
+        public ArrayDequeIterator() {
             position = 0;
         }
 
@@ -142,12 +145,12 @@ public class ArrayDeque<T> implements Deque<T> {
 
     /** Returns whether or not the parameter o is equal to the deque. */
     public boolean equals(Object o) {
-        ArrayDeque deque = (ArrayDeque) o;
-        if (this.size != deque.size) {
+        ArrayDeque other = (ArrayDeque) o;
+        if (size != other.size) {
             return false;
         }
         for (int i = 0; i < size; i += 1) {
-            if (this.get(i) != deque.get(i)) {
+            if (get(i) != other.get(i)) {
                 return false;
             }
         }
