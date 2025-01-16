@@ -24,9 +24,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         nextLast = nextFirst + 1;
     }
 
-    public void resize() {
-        return;
-    }
+    public void resize(int capacity) {}
 
     public int arrayIndex(int index) {
         if (index < 0 || index >= size) {

@@ -20,7 +20,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
         T max = get(0);
         for (int i = 1; i < size; i += 1) {
             T item = get(i);
-            if (item > max) {
+            if (c.compare(item, max) > 0) {
                 max = item;
             }
         }
@@ -31,8 +31,7 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
      *  comparator c. If the MaxArrayDeque is empty, simply return null.
      */
     public T max(Comparator<T> c) {
-        if (isEmpty()) {
-            return null;
-        }
+        comparator = c;
+        return max();
     }
 }
