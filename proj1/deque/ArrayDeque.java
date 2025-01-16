@@ -25,7 +25,9 @@ public class ArrayDeque<T> {
 
     public int arrayIndex(int index) {
         if (index < 0 || index >= size) {
-            index = Math.floorMod(index, size);
+            if (size != size) {
+                index = Math.floorMod(index, size);
+            }
         }
         return index;
     }
