@@ -23,25 +23,24 @@ public class ArrayDeque<T> {
         nextLast = nextFirst + 1;
     }
 
-    public int getFirstIndex() {
-        int first = nextFirst + 1;
-        if (first == size) { first %= size; }
-        return first;
+    public int arrayIndex(int index) {
+        if (index < 0 || index >= size) {
+            index = Math.floorMod(index, size);
+        }
+        return index;
     }
 
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
         items[nextFirst] = item;
-        nextFirst -= 1;
-        if (nextFirst < 0) { nextFirst = Math.floorMod(nextFirst, size); }
+        nextFirst = arrayIndex(nextFirst - 1);
         size += 1;
     }
 
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
         items[nextLast] = item;
-        nextLast += 1;
-        if (nextLast == size) { nextLast %= size; }
+        nextLast = arrayIndex(nextLast + 1);
         size += 1;
     }
 
@@ -58,7 +57,7 @@ public class ArrayDeque<T> {
         // Position of the first element of the deque.
         int index = nextFirst + 1;
         for (int i = 0; i < size - 1; i += 1) {
-            if (index == size) { index %= size; }
+            index = arrayIndex(index);
             System.out.print(items[index] + " ");
             index += 1;
         }
@@ -70,7 +69,7 @@ public class ArrayDeque<T> {
      */
     public T removeFirst() {
         if (isEmpty()) { return null; }
-        int first = getFirstIndex();
+        int first = arrayIndex(nextFirst + 1);
         T item = items[first];
         items[first] = null;
         nextFirst = first;
@@ -83,8 +82,7 @@ public class ArrayDeque<T> {
      */
     public T removeLast() {
         if (isEmpty()) { return null; }
-        int last = nextLast - 1;
-        if (last < 0) { last = Math.floorMod(last, size); }
+        int last = arrayIndex(nextLast - 1);
         T item = items[last];
         items[last] = null;
         nextLast = last;
@@ -98,9 +96,9 @@ public class ArrayDeque<T> {
      */
     public T get(int index) {
         if (index >= size) {return null; }
-        int first = getFirstIndex();
+        int first = arrayIndex(nextFirst + 1);
         index += first;
-        if (index >= size) { index %= size; }
+        index = arrayIndex(index);
         T item = items[index];
         return item;
     }
