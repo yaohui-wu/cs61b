@@ -69,6 +69,7 @@ public class ArrayDeque<T> {
      *  item exists, returns null.
      */
     public T removeFirst() {
+        if (isEmpty()) { return null; }
         int first = getFirstIndex();
         T item = items[first];
         items[first] = null;
@@ -81,6 +82,7 @@ public class ArrayDeque<T> {
      *  exists, returns null.
      */
     public T removeLast() {
+        if (isEmpty()) { return null; }
         int last = nextLast - 1;
         if (last < 0) { last = Math.floorMod(last, size); }
         T item = items[last];
