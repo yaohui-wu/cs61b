@@ -74,7 +74,9 @@ public class ArrayDeque<T> implements Deque<T> {
      *  item exists, returns null.
      */
     public T removeFirst() {
-        if (isEmpty()) { return null; }
+        if (isEmpty()) {
+            return null;
+        }
         int first = arrayIndex(nextFirst + 1);
         T item = items[first];
         items[first] = null;
@@ -88,7 +90,9 @@ public class ArrayDeque<T> implements Deque<T> {
      *  exists, returns null.
      */
     public T removeLast() {
-        if (isEmpty()) { return null; }
+        if (isEmpty()) {
+            return null;
+        }
         int last = arrayIndex(nextLast - 1);
         T item = items[last];
         items[last] = null;
@@ -103,7 +107,9 @@ public class ArrayDeque<T> implements Deque<T> {
      *  returns null.
      */
     public T get(int index) {
-        if (index >= size) {return null; }
+        if (index < 0 || index >= size) {
+            return null;
+        }
         int first = arrayIndex(nextFirst + 1);
         index += first;
         index = arrayIndex(index);
@@ -112,8 +118,39 @@ public class ArrayDeque<T> implements Deque<T> {
     }
 
     /** Returns an iterator of the deque. */
-    public Iterator<T> iterator() {}
+    public Iterator<T> iterator() {
+        return new LinkedListDequeIterator();
+    }
+
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private int position;
+
+        public LinkedListDequeIterator() {
+            position = 0;
+        }
+
+        public boolean hasNext() {
+            return position < size;
+        }
+
+        public T next() {
+            T item = get(position);
+            position += 1;
+            return item;
+        }
+    }
 
     /** Returns whether or not the parameter o is equal to the deque. */
-    public boolean equals(Object o) {}
+    public boolean equals(Object o) {
+        ArrayDeque deque = (ArrayDeque) o;
+        if (this.size != deque.size) {
+            return false;
+        }
+        for (int i = 0; i < size; i += 1) {
+            if (this.get(i) != deque.get(i)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
