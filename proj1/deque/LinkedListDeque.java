@@ -1,6 +1,5 @@
 package deque;
 
-import java.util.Iterable;
 import java.util.Iterator;
 
 /** Implementation of a deque (double-ended queue) using a circular doubly
