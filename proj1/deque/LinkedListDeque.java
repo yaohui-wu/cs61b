@@ -1,12 +1,10 @@
 package deque;
 
-import java.util.Iterator;
-
 /** Implementation of a deque (double-ended queue) using a circular doubly
  *  linked list with a sentinel node.
  *  @author Yaohui Wu
  */
-public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
+public class LinkedListDeque<T> {
     private class Node {
         private T item;
         private Node previous;
@@ -135,46 +133,5 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         } else {
             return getItemRecursive(current.next, index - 1);
         }
-    }
-
-    /** Returns an iterator of the deque. */
-    public Iterator<T> iterator() {
-        return new LinkedListDequeIterator();
-    }
-
-    private class LinkedListDequeIterator implements Iterator<T> {
-        private Node current;
-
-        public LinkedListDequeIterator() {
-            current = sentinel.next;
-        }
-
-        public boolean hasNext() {
-            return current != null;
-        }
-
-        public T next() {
-            T item = current.item;
-            current = current.next;
-            return item;
-        }
-    }
-
-    /** Returns whether or not the parameter o is equal to the deque. */
-    public boolean equals(Object o) {
-        LinkedListDeque other = (LinkedListDeque) o;
-        if (this.size != other.size) {
-            return false;
-        }
-        Node thisNode = this.sentinel.next;
-        Node otherNode = other.sentinel.next;
-        for (int i = 0; i < size; i += 1) {
-            if (thisNode.item != otherNode.item) {
-                return false;
-            }
-            thisNode = thisNode.next;
-            otherNode = otherNode.next;
-        }
-        return true;
     }
 }
