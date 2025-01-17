@@ -6,7 +6,7 @@ import java.util.Iterator;
  *  linked list with a sentinel node.
  *  @author Yaohui Wu
  */
-public class LinkedListDeque<T> implements Iterable<T> {
+public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     private class Node {
         private T item;
         private Node previous;
@@ -34,6 +34,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
         size = 0;
     }
 
+    @Override
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
         Node first = sentinel.next; // Old first node.
@@ -43,6 +44,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
         size += 1;
     }
 
+    @Override
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
         Node last = sentinel.previous; // Old last node.
@@ -52,16 +54,13 @@ public class LinkedListDeque<T> implements Iterable<T> {
         size += 1;
     }
 
-    /** Returns true if the deque is empty, false otherwise. */
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
+    @Override
     /** Returns the number of items in the deque in constant time. */
     public int size() {
         return size;
     }
     
+    @Override
     /** Prints all the items in the deque from first to last, separated by a
      *  space, then prints out a new line.
      */
@@ -74,6 +73,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
         System.out.println(current.item);
     }
 
+    @Override
     /** Removes and returns the item at the front of the deque. If no such
      *  item exists, returns null.
      */
@@ -89,6 +89,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
         return current.item;
     }
 
+    @Override
     /** Removes and returns the item at the back of the deque. If no such item
      *  exists, returns null.
      */
@@ -104,6 +105,7 @@ public class LinkedListDeque<T> implements Iterable<T> {
         return current.item;
     }
 
+    @Override
     /**
      * Gets the item at the given index using iteration, where 0 is the front,
      * 1 is the next item, and so forth. If no such item exists, returns null.

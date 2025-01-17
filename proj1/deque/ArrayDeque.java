@@ -7,7 +7,7 @@ import java.util.Iterator;
  *  circular array.
  *  @author Yaohui Wu
  */
-public class ArrayDeque<T> implements Iterable<T> {
+public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     private int capacity; // Size of the array.
     private T[] items;
     private int size; // Size of the deque.
@@ -32,6 +32,7 @@ public class ArrayDeque<T> implements Iterable<T> {
         items = newItems;
     }
 
+    @Override
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
         items[nextFirst] = item;
@@ -39,6 +40,7 @@ public class ArrayDeque<T> implements Iterable<T> {
         nextFirst = getArrayIndex(nextFirst - 1);
     }
 
+    @Override
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
         items[nextLast] = item;
@@ -46,16 +48,13 @@ public class ArrayDeque<T> implements Iterable<T> {
         nextLast = getArrayIndex(nextLast + 1);
     }
 
-    /** Returns true if the deque is empty, false otherwise. */
-    public boolean isEmpty() {
-        return size() == 0;
-    }
-
+    @Override
     /** Returns the number of items in the deque in constant time. */
     public int size() {
         return size;
     }
 
+    @Override
     /** Prints all the items in the deque from first to last, separated by a
      *  space, then prints out a new line.
      */
@@ -66,6 +65,7 @@ public class ArrayDeque<T> implements Iterable<T> {
         System.out.println(get(size - 1));
     }
 
+    @Override
     /** Removes and returns the item at the front of the deque. If no such
      *  item exists, returns null.
      */
@@ -79,6 +79,7 @@ public class ArrayDeque<T> implements Iterable<T> {
         return item;
     }
 
+    @Override
     /** Removes and returns the item at the back of the deque. If no such item
      *  exists, returns null.
      */
@@ -92,6 +93,7 @@ public class ArrayDeque<T> implements Iterable<T> {
         return item;
     }
 
+    @Override
     /** Gets the item at the given index in constant time, where 0 is the
      *  front, 1 is the next item, and so forth. If no such item exists,
      *  returns null.
