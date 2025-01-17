@@ -24,13 +24,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         nextLast = nextFirst + 1;
     }
 
-    public void resize(int capacity) {
+    private void resize(int capacity) {
         T[] newItems = (T[]) new Object[capacity];
         System.arraycopy(newItems, 0, items, 0, size);
         items = newItems;
     }
 
-    public int arrayIndex(int index) {
+    private int getArrayIndex(int index) {
         if (index < 0 || index >= size) {
             if (size > 0) {
                 index = Math.floorMod(index, size);
@@ -43,7 +43,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
         items[nextFirst] = item;
-        nextFirst = arrayIndex(nextFirst - 1);
+        nextFirst = getArrayIndex(nextFirst - 1);
         size += 1;
     }
 
@@ -51,8 +51,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
         items[nextLast] = item;
-        nextLast = arrayIndex(nextLast + 1);
+        nextLast = getArrayIndex(nextLast + 1);
         size += 1;
+    }
+
+    @Override
+    /** Returns true if the deque is empty, false otherwise. */
+    public boolean isEmpty() {
+        return size() == 0;
     }
 
     @Override
@@ -67,7 +73,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         // Position of the first element of the deque.
         int index = nextFirst + 1;
         for (int i = 0; i < size - 1; i += 1) {
-            index = arrayIndex(index);
+            index = getArrayIndex(index);
             System.out.print(items[index] + " ");
             index += 1;
         }
@@ -82,7 +88,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        int first = arrayIndex(nextFirst + 1);
+        int first = getArrayIndex(nextFirst + 1);
         T item = items[first];
         items[first] = null;
         nextFirst = first;
@@ -98,7 +104,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        int last = arrayIndex(nextLast - 1);
+        int last = getArrayIndex(nextLast - 1);
         T item = items[last];
         items[last] = null;
         nextLast = last;
@@ -115,9 +121,9 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (index < 0 || index >= size) {
             return null;
         }
-        int first = arrayIndex(nextFirst + 1);
+        int first = getArrayIndex(nextFirst + 1);
         index += first;
-        index = arrayIndex(index);
+        index = getArrayIndex(index);
         T item = items[index];
         return item;
     }

@@ -7,7 +7,7 @@ import java.util.Iterator;
  *  @author Yaohui Wu
  */
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
-    public class Node {
+    private class Node {
         private T item;
         private Node previous;
         private Node next;
@@ -52,6 +52,12 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         last.next = current;
         sentinel.previous = current;
         size += 1;
+    }
+
+    @Override
+    /** Returns true if the deque is empty, false otherwise. */
+    public boolean isEmpty() {
+        return size() == 0;
     }
 
     @Override
@@ -131,7 +137,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return getItemRecursive(current, index);
     }
 
-    public T getItemRecursive(Node current, int index) {
+    private T getItemRecursive(Node current, int index) {
         if (index == 0) {
             return current.item;
         } else {
