@@ -1,12 +1,13 @@
 package deque;
 
+import java.lang.Comparable;
 import java.util.Comparator;
 
 public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
     private Comparator<T> comparator;
+
     /** Creates a MaxArrayDeque with the given comparator. */
     public MaxArrayDeque(Comparator<T> c) {
-        MaxArrayDeque = new ArrayDeque();
         comparator = c;
     }
 
@@ -18,9 +19,9 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
             return null;
         }
         T max = get(0);
-        for (int i = 1; i < size; i += 1) {
+        for (int i = 1; i < size(); i += 1) {
             T item = get(i);
-            if (c.compare(item, max) > 0) {
+            if (comparator.compare(item, max) > 0) {
                 max = item;
             }
         }
@@ -31,7 +32,21 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
      *  comparator c. If the MaxArrayDeque is empty, simply return null.
      */
     public T max(Comparator<T> c) {
-        comparator = c;
-        return max();
+        if (isEmpty()) {
+            return null;
+        }
+        T max = get(0);
+        for (int i = 1; i < size(); i += 1) {
+            T item = get(i);
+            if (c.compare(item, max) > 0) {
+                max = item;
+            }
+        }
+        return max;
+    }
+
+    @Override
+    public int compareTo(T other) {
+        return 0;
     }
 }
