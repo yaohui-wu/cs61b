@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-/** Implementation of a deque (double-ended queue) using a circular doubly
+/** Implementation of a deque (double-ended queue) based on a circular doubly
  *  linked list with a sentinel node.
  *  @author Yaohui Wu
  */

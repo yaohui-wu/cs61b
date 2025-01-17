@@ -3,8 +3,8 @@ package deque;
 import java.lang.Math;
 import java.util.Iterator;
 
-/** Implementation of a deque (double-ended queue) using a resizable circular
- *  array.
+/** Implementation of a deque (double-ended queue) based on a resizable
+ *  circular array.
  *  @author Yaohui Wu
  */
 public class ArrayDeque<T> implements Iterable<T> {
