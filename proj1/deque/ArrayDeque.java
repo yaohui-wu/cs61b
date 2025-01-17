@@ -11,8 +11,10 @@ public class ArrayDeque<T> implements Iterable<T> {
     private int capacity; // Size of the array.
     private T[] items;
     private int size; // Size of the deque.
-    private int nextFirst; // Position of the next first item in the deque.
-    private int nextLast; // Position of the next last item in the deque.
+    //  Array index of the next first item in the deque.
+    private int nextFirst;
+    // Array index of the next last item in the deque.
+    private int nextLast;
 
     /** Creates an empty array deque with an initial capacity of 8. */
     public ArrayDeque() {
@@ -28,15 +30,6 @@ public class ArrayDeque<T> implements Iterable<T> {
         T[] newItems = (T[]) new Object[capacity];
         System.arraycopy(newItems, 0, items, 0, size);
         items = newItems;
-    }
-
-    private int getArrayIndex(int index) {
-        if (index < 0 || index >= size) {
-            if (size > 0) {
-                index = Math.floorMod(index, size);
-            }
-        }
-        return index;
     }
 
     /** Adds an item of type T to the front of the deque in constant time. */
@@ -59,20 +52,18 @@ public class ArrayDeque<T> implements Iterable<T> {
     }
 
     /** Returns the number of items in the deque in constant time. */
-    public int size() { return size; }
+    public int size() {
+        return size;
+    }
 
     /** Prints all the items in the deque from first to last, separated by a
      *  space, then prints out a new line.
      */
     public void printDeque() {
-        // Position of the first element of the deque.
-        int index = nextFirst + 1;
         for (int i = 0; i < size - 1; i += 1) {
-            index = getArrayIndex(index);
-            System.out.print(items[index] + " ");
-            index += 1;
+            System.out.print(get(i));
         }
-        System.out.println(items[index]);
+        System.out.println(get(size - 1));
     }
 
     /** Removes and returns the item at the front of the deque. If no such
@@ -82,10 +73,9 @@ public class ArrayDeque<T> implements Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        int first = getArrayIndex(nextFirst + 1);
-        T item = items[first];
-        nextFirst = first;
+        T item = get(0);
         size -= 1;
+        nextFirst = getArrayIndex(nextFirst + 1);
         return item;
     }
 
@@ -96,10 +86,9 @@ public class ArrayDeque<T> implements Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        int last = getArrayIndex(nextLast - 1);
-        T item = items[last];
-        nextLast = last;
+        T item = get(size - 1);
         size -= 1;
+        nextLast = getArrayIndex(nextLast - 1);
         return item;
     }
 
@@ -111,11 +100,17 @@ public class ArrayDeque<T> implements Iterable<T> {
         if (index < 0 || index >= size) {
             return null;
         }
-        int first = getArrayIndex(nextFirst + 1);
-        index += first;
-        index = getArrayIndex(index);
+        index = getArrayIndex(index + nextFirst + 1);
         T item = items[index];
         return item;
+    }
+
+    /** Returns the index in the array given the index in the deque. */
+    private int getArrayIndex(int index) {
+        if (index < 0 || index >= capacity) {
+            index = Math.floorMod(index, capacity);
+        }
+        return index;
     }
 
     /** Returns an iterator of the deque. */

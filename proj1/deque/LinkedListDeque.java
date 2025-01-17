@@ -58,7 +58,9 @@ public class LinkedListDeque<T> implements Iterable<T> {
     }
 
     /** Returns the number of items in the deque in constant time. */
-    public int size() { return size; }
+    public int size() {
+        return size;
+    }
     
     /** Prints all the items in the deque from first to last, separated by a
      *  space, then prints out a new line.
