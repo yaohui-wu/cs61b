@@ -1,12 +1,14 @@
 package deque;
 
 import java.lang.Math;
+import java.util.Iterable;
+import java.util.Iterator;
 
 /** Implementation of a deque (double-ended queue) using a resizable circular
  *  array.
  *  @author Yaohui Wu
  */
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Iterable<T> {
     private int capacity; // Size of the array.
     private T[] items;
     private int size; // Size of the deque.
@@ -41,15 +43,15 @@ public class ArrayDeque<T> {
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
         items[nextFirst] = item;
-        nextFirst = getArrayIndex(nextFirst - 1);
         size += 1;
+        nextFirst = getArrayIndex(nextFirst - 1);
     }
 
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
         items[nextLast] = item;
-        nextLast = getArrayIndex(nextLast + 1);
         size += 1;
+        nextLast = getArrayIndex(nextLast + 1);
     }
 
     /** Returns true if the deque is empty, false otherwise. */
@@ -117,5 +119,42 @@ public class ArrayDeque<T> {
         index = getArrayIndex(index);
         T item = items[index];
         return item;
+    }
+
+    /** Returns an iterator of the deque. */
+    public Iterator<T> iterator() {
+        return new ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int position;
+
+        public ArrayDequeIterator() {
+            position = 0;
+        }
+
+        public boolean hasNext() {
+            return position < size;
+        }
+
+        public T next() {
+            T item = get(position);
+            position += 1;
+            return item;
+        }
+    }
+
+    /** Returns whether or not the parameter o is equal to the deque. */
+    public boolean equals(Object o) {
+        ArrayDeque other = (ArrayDeque) o;
+        if (size != other.size) {
+            return false;
+        }
+        for (int i = 0; i < size; i += 1) {
+            if (get(i) != other.get(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 }
