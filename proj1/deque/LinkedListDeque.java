@@ -150,16 +150,19 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private Node current;
 
         public LinkedListDequeIterator() {
-            current = sentinel;
+            current = sentinel.next;
         }
 
         public boolean hasNext() {
-            return current.next != null;
+            if (isEmpty()) {
+                return false;
+            }
+            return current != null;
         }
 
         public T next() {
-            current = current.next;
             T item = current.item;
+            current = current.next;
             return item;
         }
     }
