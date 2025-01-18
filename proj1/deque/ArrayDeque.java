@@ -141,7 +141,8 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     @Override
     /** Returns whether or not the parameter o is equal to the deque. */
     public boolean equals(Object o) {
-        if (o instanceof Deque<T> other) {
+        if (o instanceof Deque) {
+            ArrayDeque<T> other = (ArrayDeque<T>) o;
             if (size != other.size) {
                 return false;
             }
