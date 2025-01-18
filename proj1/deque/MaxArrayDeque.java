@@ -3,7 +3,7 @@ package deque;
 import java.lang.Comparable;
 import java.util.Comparator;
 
-public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
+public class MaxArrayDeque<T> extends ArrayDeque<T> {
     private Comparator<T> comparator;
 
     /** Creates a MaxArrayDeque with the given comparator. */
@@ -43,10 +43,5 @@ public class MaxArrayDeque<T> extends ArrayDeque<T> implements Comparable<T> {
             }
         }
         return max;
-    }
-
-    @Override
-    public int compareTo(T other) {
-        return 0;
     }
 }
