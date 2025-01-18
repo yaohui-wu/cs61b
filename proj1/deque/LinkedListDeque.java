@@ -167,8 +167,11 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     @Override
     /** Returns whether or not the parameter o is equal to the deque. */
     public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
         if (o instanceof Deque) {
-            LinkedListDeque<T> other =  (LinkedListDeque<T>) o;
+            LinkedListDeque<T> other = (LinkedListDeque<T>) o;
             if (size != other.size) {
                 return false;
             }
