@@ -1,6 +1,7 @@
 package gh2;
 
 import deque.Deque;
+import deque.ArrayDeque;
 
 public class GuitarString {
     /** Constants. Do not change. In case you're curious, the keyword final
@@ -41,12 +42,12 @@ public class GuitarString {
      */
     public void tic() {
         /*
-         * Dequeue the front sample and enqueue a new sample that is
-         * the average of the two multiplied by the DECAY factor.
+         * Dequeue the front sample and average it with the next sample. Then
+         * multiply by the energy DECAY factor and enqueue this new sample.
          */
-        double front = buffer.removeFirst();
-        double back = buffer.get(buffer.size() - 1);
-        double newSample = (front + back) / 2 * DECAY;
+        double frontSample = buffer.removeFirst();
+        double nextSample = buffer.get(0);
+        double newSample = (frontSample + nextSample) / 2 * DECAY;
         buffer.addLast(newSample);
     }
 
