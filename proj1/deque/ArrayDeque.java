@@ -17,7 +17,12 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
 
     /** Creates an empty array deque with an initial capacity of 8. */
     public ArrayDeque() {
-        capacity = 8;
+        ArrayDeque(8);
+    }
+
+    /** Creates an empty array deque with a given initial capacity. */
+    public ArrayDeque(int newCapacity) {
+        capacity = newCapacity;
         items = (T[]) new Object[capacity];
         size = 0;
         // Initializes an empty deque in the middle of the array.
@@ -51,8 +56,8 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     }
 
     private void resizeDown() {
-        if (capacity > 8 && size < capacity / 4) {
-            resize(capacity / 4);
+        if (capacity > 8 && size < capacity / 2) {
+            resize(capacity / 2);
         }
     }
 

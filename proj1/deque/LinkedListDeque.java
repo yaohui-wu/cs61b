@@ -82,13 +82,11 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         Node current = sentinel.next; // Old first node.
-        T item = current.item;
         Node first = current.next; // New first node.
         first.previous = sentinel;
         sentinel.next = first;
-        current = null;
         size -= 1;
-        return item;
+        return current.item;
     }
 
     @Override
@@ -100,13 +98,11 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         Node current = sentinel.previous; // Old last node.
-        T item = current.item;
         Node last = current.previous; // New last node.
         last.next = sentinel;
         sentinel.previous = last;
-        current = null;
         size -= 1;
-        return item;
+        return current.item;
     }
 
     @Override
