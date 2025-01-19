@@ -154,7 +154,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         }
 
         public boolean hasNext() {
-            return current != null;
+            return current != sentinel;
         }
 
         public T next() {
