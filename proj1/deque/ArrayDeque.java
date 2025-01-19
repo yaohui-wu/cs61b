@@ -1,6 +1,5 @@
 package deque;
 
-import java.lang.Math;
 import java.util.Iterator;
 
 /** Implementation of a deque (double-ended queue) based on a resizable
@@ -21,31 +20,54 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         capacity = 8;
         items = (T[]) new Object[capacity];
         size = 0;
-        // Initializes the deque in the middle of the array.
+        // Initializes an empty deque in the middle of the array.
         nextFirst = capacity / 2;
         nextLast = nextFirst + 1;
     }
 
-    private void resize(int capacity) {
-        if (capacity < 8) {
+    private void resize(int newCapacity) {
+        // Resize up or down the array with geometric expansion.
+        if (newCapacity < 8) {
             return;
         }
-        T[] array = (T[]) new Object[capacity];
+        T[] array = (T[]) new Object[newCapacity];
+        /* 
+         * Copy the elements in the deque from front to back to the beginning
+         * of the new array.
+         */
         for (int i = 0; i < size; i += 1) {
             array[i] = get(i);
         }
         items = array;
-        nextFirst = capacity - 1;
+        nextFirst = newCapacity - 1;
         nextLast = size;
-        this.capacity = capacity;
+        capacity = newCapacity;
+    }
+
+    private void resizeUp() {
+        if (size == capacity) {
+            resize(capacity * 2);
+        }
+    }
+
+    private void resizeDown() {
+        if (capacity > 8 && size < capacity / 4) {
+            resize(capacity / 4);
+        }
+    }
+
+    /** Returns a valid index in the circular array. */
+    private int getArrayIndex(int index) {
+        if (index < 0 || index >= capacity) {
+            index = Math.floorMod(index, capacity);
+        }
+        return index;
     }
 
     @Override
     /** Adds an item of type T to the front of the deque in constant time. */
     public void addFirst(T item) {
-        if (size == capacity) {
-            resize(capacity * 2);
-        }
+        resizeUp();
         items[nextFirst] = item;
         size += 1;
         nextFirst = getArrayIndex(nextFirst - 1);
@@ -54,9 +76,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     @Override
     /** Adds an item of type T to the back of the deque in constant time. */
     public void addLast(T item) {
-        if (size == capacity) {
-            resize(capacity * 2);
-        }
+        resizeUp();
         items[nextLast] = item;
         size += 1;
         nextLast = getArrayIndex(nextLast + 1);
@@ -92,9 +112,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         items[first] = null;
         size -= 1;
         nextFirst = getArrayIndex(nextFirst + 1);
-        if (capacity > 8 && size < capacity / 4) {
-            resize(capacity / 4);
-        }
+        resizeDown();
         return item;
     }
 
@@ -111,9 +129,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         items[last] = null;
         size -= 1;
         nextLast = getArrayIndex(nextLast - 1);
-        if (capacity > 8 && size < capacity / 4) {
-            resize(capacity / 4);
-        }
+        resizeDown();
         return item;
     }
 
@@ -131,14 +147,6 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         return item;
     }
 
-    /** Returns the index in the array given the index in the deque. */
-    private int getArrayIndex(int index) {
-        if (index < 0 || index >= capacity) {
-            index = Math.floorMod(index, capacity);
-        }
-        return index;
-    }
-
     /** Returns an iterator of the deque. */
     public Iterator<T> iterator() {
         return new ArrayDequeIterator();
@@ -147,7 +155,7 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
     private class ArrayDequeIterator implements Iterator<T> {
         private int position;
 
-        public ArrayDequeIterator() {
+        private ArrayDequeIterator() {
             position = 0;
         }
 

@@ -12,10 +12,10 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         private Node previous;
         private Node next;
 
-        public Node(T item, Node previous, Node next) {
-            this.item = item;
-            this.previous = previous;
-            this.next = next;
+        private Node(T newItem, Node previousNode, Node nextNode) {
+            item = newItem;
+            previous = previousNode;
+            next = nextNode;
         }
     }
 
@@ -82,11 +82,13 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         Node current = sentinel.next; // Old first node.
+        T item = current.item;
         Node first = current.next; // New first node.
         first.previous = sentinel;
         sentinel.next = first;
+        current = null;
         size -= 1;
-        return current.item;
+        return item;
     }
 
     @Override
@@ -98,17 +100,19 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
             return null;
         }
         Node current = sentinel.previous; // Old last node.
+        T item = current.item;
         Node last = current.previous; // New last node.
         last.next = sentinel;
         sentinel.previous = last;
+        current = null;
         size -= 1;
-        return current.item;
+        return item;
     }
 
     @Override
-    /**
-     * Gets the item at the given index using iteration, where 0 is the front,
-     * 1 is the next item, and so forth. If no such item exists, returns null.
+    /** Gets the item at the given index using iteration, where 0 is the
+     *  front, 1 is the next item, and so forth. If no such item exists,
+     *  returns null.
      */
     public T get(int index) {
         if (index < 0 || index >= size) {
@@ -121,9 +125,9 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
         return current.item;
     }
 
-    /**
-     * Gets the item at the given index using recursion, where 0 is the front,
-     * 1 is the next item, and so forth. If no such item exists, returns null.
+    /** Gets the item at the given index using recursion, where 0 is the
+     *  front, 1 is the next item, and so forth. If no such item exists,
+     *  returns null.
      */
     public T getRecursive(int index) {
         if (index < 0 || index >= size) {
@@ -149,7 +153,7 @@ public class LinkedListDeque<T> implements Iterable<T>, Deque<T> {
     private class LinkedListDequeIterator implements Iterator<T> {
         private Node current;
 
-        public LinkedListDequeIterator() {
+        private LinkedListDequeIterator() {
             current = sentinel.next;
         }
 
