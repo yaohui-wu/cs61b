@@ -87,8 +87,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (isEmpty()) {
             return null;
         }
-        T item = items[nextFirst + 1];
-        items[nextFirst + 1] = null;
+        int first = getArrayIndex(nextFirst + 1);
+        T item = items[first];
+        items[first] = null;
         size -= 1;
         nextFirst = getArrayIndex(nextFirst + 1);
         if (capacity > 8 && size < capacity / 4) {
@@ -105,8 +106,9 @@ public class ArrayDeque<T> implements Iterable<T>, Deque<T> {
         if (isEmpty()) {
             return null;
         }
-        T item = items[nextLast - 1];
-        items[nextLast - 1] = null;
+        int last = getArrayIndex(nextLast - 1);
+        T item = items[last];
+        items[last] = null;
         size -= 1;
         nextLast = getArrayIndex(nextLast - 1);
         if (capacity > 8 && size < capacity / 4) {
