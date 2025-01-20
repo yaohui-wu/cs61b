@@ -15,9 +15,9 @@ public class GuitarString {
 
     /* Create a guitar string of the given frequency.  */
     public GuitarString(double frequency) {
-        int capacity = (int) Math.round(SR / frequency);
         // Initializes a buffer with the capacity and fills it with zeros.
-        buffer = new ArrayDeque<>(capacity);
+        buffer = new ArrayDeque<>();
+        int capacity = (int) Math.round(SR / frequency);
         for (int i = 0; i < capacity; i += 1) {
             buffer.addLast(0.0);
         }
