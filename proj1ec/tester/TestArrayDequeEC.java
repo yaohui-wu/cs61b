@@ -23,32 +23,32 @@ public class TestArrayDequeEC {
                 student.addFirst(n);
                 solution.addFirst(n);
                 message += "addFirst(" + n + ")\n";
-                assertEquals(message, student.get(0), solution.get(0));
+                Integer expected = solution.get(0);
+                Integer actual = student.get(0);
+                assertEquals(message, expected, actual);
             } else if (operation == 1) {
                 // Test addLast.
                 Integer n = StdRandom.uniform(10);
                 student.addLast(n);
                 solution.addLast(n);
                 message += "addLast(" + n + ")\n";
-                assertEquals(
-                    message,
-                    student.get(student.size() - 1),
-                    solution.get(solution.size() - 1)
-                );
+                Integer expected = solution.get(solution.size() - 1);
+                Integer actual = student.get(student.size() - 1);
+                assertEquals(message, expected, actual);
             } else if (operation == 2
                     && !student.isEmpty()
                     && !solution.isEmpty()) {
                 // Test removeFirst.
-                Integer expected = student.removeFirst();
-                Integer actual = solution.removeFirst();
+                Integer expected = solution.removeFirst();
+                Integer actual = student.removeFirst();
                 message += "removeFirst()\n";
                 assertEquals(message, expected, actual);
             } else if (operation == 3
                     && !student.isEmpty()
                     && !solution.isEmpty()) {
                 // Test removeLast.
-                Integer expected = student.removeLast();
-                Integer actual = solution.removeLast();
+                Integer expected = solution.removeLast();
+                Integer actual = student.removeLast();
                 message += "removeLast()\n";
                 assertEquals(message, expected, actual);
             }
