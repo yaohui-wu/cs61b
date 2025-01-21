@@ -11,7 +11,7 @@ public class BSTMap implements Map61B<K, V> {
         private K key; // Sorts by key.
         private V value; // Associated data.
         private Node left, right; // Left and right subtrees.
-        private int size; // Numbers of nodes in the subtrees.
+        private int size; // Numbers of nodes in the tree.
 
         public Node(K newKey, V newValue, int newSize) {
             key = newKey;
@@ -29,29 +29,73 @@ public class BSTMap implements Map61B<K, V> {
     
     /** Removes all of the mappings from this map. */
     public void clear() {
-        throw new UnsupportedOperationException();
+        root = null;
     }
 
     /** Returns true if this map contains a mapping for the specified key. */
     public boolean containsKey(K key) {
-        throw new UnsupportedOperationException();
+        if (root == null) {
+            return false;
+        }
+        if (key == root.key) {
+            return true;
+        } else if (key < root.key) {
+            Node left = root.left;
+            return left.containsKey(key);
+        } else {
+            Node right = root.right;
+            return right.containsKey(key);
+        }
+        return false;
     }
 
     /** Returns the value to which the specified key is mapped, or null if
      *  this map contains no mapping for the key.
      */
     public V get(K key) {
-        throw new UnsupportedOperationException();
+        if (!containsKey()) {
+            return null;
+        }
+        if (key == root.key) {
+            return root.value;
+        } else if (key < root.key) {
+            Node left = root.left;
+            left.get(key);
+        } else {
+            Node right = root.right;
+            right.get(key);
+        }
     }
 
     /** Returns the number of key-value mappings in this map. */
     int size() {
-        throw new UnsupportedOperationException();
+        int size;
+        if (root == null) {
+            size = 0;
+        } else {
+            size = 1;
+            Node left = root.left;
+            size += left.size();
+            Node right = root.right;
+            size += right.size();
+        }
+        return size;
     }
 
     /** Associates the specified value with the specified key in this map. */
     void put(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (containsKey(key)) {
+            return;
+        }
+        if (key == root.key) {
+            root.value = value;
+        } else if (key < root.key) {
+            Node left = root.left;
+            left.put(key, value);
+        } else {
+            Node right = root.right;
+            right.put(key, value);
+        }
     }
 
     /** Returns a Set view of the keys contained in this map. Not required for
