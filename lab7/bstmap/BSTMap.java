@@ -39,7 +39,18 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
 
     /** Returns true if this map contains a mapping for the specified key. */
     public boolean containsKey(K key) {
-        return get(key) != null;
+        if (root == null) {
+            return false;
+        }
+        int relation = key.compareTo(root.key);
+        if (relation == 0) {
+            return true;
+        } else if (relation < 0) {
+            root = root.left;
+        } else {
+            root = root.right;
+        }
+        return containsKey(key);
     }
 
     /** Returns the value to which the specified key is mapped, or null if
