@@ -72,13 +72,13 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         }
         int cmp = key.compareTo(root.key);
         if (cmp < 0) {
-            // If the key is smaller, searches the left subtree.
+            // Key is smaller, searches the left subtree.
             return search(root.left, key);
         } else if (cmp > 0) {
-            // If the key is larger, searches the right subtree.
+            // Key is larger, searches the right subtree.
             return search(root.right, key);
         } else {
-            // If the key is equal, returns the current node.
+            // Key is equal, returns the current node.
             return root;
         }
     }
@@ -92,8 +92,10 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     @Override
     /** Associates the specified value with the specified key in this map. */
     public void put(K key, V value) {
+        if (!containsKey(key)) {
+            size += 1;
+        }
         root = insert(root, key, value);
-        size += 1;
     }
 
     /** Inserts a node with the given key value pair into the BSTMap using
@@ -182,54 +184,54 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         } else if (cmp > 0) {
             root.right = delete(root.right, key);
         } else {
+            // Node has either zero or one child.
             /*
-             * Case 1: Node has no left child. Replaces it with its right
-             * child.
+             * Replaces the node with its child if it exists, otherwise return
+             * null if it has no children.
              */
             if (root.left == null) {
                 return root.right;
             }
-            /* 
-             * Case 2: Node has no right child. Replaces it with its left
-             * child.
-             */
             if (root.right == null) {
                 return root.left;
             }
-            // Case 3: Node has two children.
+            // Node has two children.
             /* 
-             * Finds the smallest node in the right subtree (in-order
-             * successor).
+             * Finds the largest node in the left subtree (in-order
+             * predecessor).
              */
             Node temp = root;
-            root = min(root.right);
-            // Deletes the in-order successor from the right subtree.
-            root.right = deleteMin(temp.right);
-            // Reattaches the left subtree to the new root.
-            root.left = temp.left;
+            root = max(root.left);
+            // Deletes the in-order predecessor from the left subtree.
+            root.left = deleteMax(temp.left);
+            // Reattaches the right subtree to the new root.
+            root.right = temp.right;
         }
-        return root; // Returns the updated root.
+        // Returns the updated root.
+        return root;
     }
 
-    /** Returns the smallest node in the BST. */
-    private Node min(Node root) {
+    /** Returns the largest node in the BST. */
+    private Node max(Node root) {
         if (root == null) {
             return null;
         }
-        if (root.left == null) {
+        // Traverses to the rightmost node in the subtree.
+        if (root.right == null) {
+            // The rightmost node is the largest.
             return root;
         }
-        return min(root.left);
+        return max(root.right);
     }
 
-    /** Deletes the smallest node in the BST and returns the root of the BST
+    /** Deletes the largest node in the BST and returns the root of the BST
      *  after the deletion.
      */
-    private Node deleteMin(Node root) {
-        if (root.left == null) {
-            return root.right;
+    private Node deleteMax(Node root) {
+        if (root.right == null) {
+            return root.left;
         }
-        root.left = deleteMin(root.left);
+        root.right = deleteMax(root.right);
         return root;
     }
 
@@ -237,7 +239,6 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     public Iterator<K> iterator() {
         return keySet().iterator();
     }
-
     
     /** Prints the BSTMap in order of increasing key. */
     public void printInOrder() {
