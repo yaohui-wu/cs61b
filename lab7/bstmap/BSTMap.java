@@ -6,9 +6,9 @@ import java.util.Iterator;
 /** Map based on a binary search tree (BST).
  *  @author Yaohui Wu
  */
-public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     private Node root; // Root of the BST.
-    private int size; // Numbers of nodes in the tree.
+    private int size; // Numbers of nodes in the BST.
 
     /** BST node with a key value pair. */
     private class Node {
@@ -42,7 +42,7 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
         if (root == null) {
             return false;
         }
-        return key.equals(search(root, key).key);
+        return search(root, key) != null;
     }
 
     /** Returns the value to which the specified key is mapped, or null if
@@ -55,16 +55,22 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
         return search(root, key).value;
     }
 
-    public Node search(Node root, K key) {
+    /** Searches the node that has the given key using recursion. Returns the
+     *  node if it exists, otherwise returns null.
+     */
+    private Node search(Node root, K key) {
         if (root == null) {
             return null;
         }
         int order = key.compareTo(root.key);
         if (order < 0) {
+            // If the key is smaller, search the left subtree.
             return search(root.left, key);
         } else if (order > 0) {
+            // If the key is larger, search the right subtree.
             return search(root.right, key);
         } else {
+            // If the key is equal, return the current node.
             return root;
         }
     }
@@ -79,7 +85,10 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
         root = insert(root, key, value);
     }
 
-    public Node insert(Node root, K key, V value) {
+    /** Inserts a node with the given key value pair into the BSTMap using
+     *  recursion and returns the root of the BST.
+     */
+    private Node insert(Node root, K key, V value) {
         if (root == null) {
             root = new Node(key, value);
             size += 1;
@@ -87,12 +96,16 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
         }
         int order = key.compareTo(root.key);
         if (order < 0) {
+            // If the key is smaller, insert it into the left subtree.
             root.left = insert(root.left, key, value);
         } else if (order > 0) {
+            // If the key is larger, insert it into the right subtree.
             root.right = insert(root.right, key, value);
         } else {
+            // If the key already exists, update the value associated with it.
             root.value = value;
         }
+        // Return the root of the BST after the insertion.
         return root;
     }
 
