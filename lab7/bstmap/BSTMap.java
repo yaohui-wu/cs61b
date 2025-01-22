@@ -32,100 +32,6 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         size = 0;
     }
 
-    /** Inserts a node with the given key value pair into the BSTMap using
-     *  recursion and returns the root of the BST after the insertion.
-     */
-    private Node insert(Node root, K key, V value) {
-        if (root == null) {
-            root = new Node(key, value);
-            return root;
-        }
-        int comparison = key.compareTo(root.key);
-        if (comparison < 0) {
-            // If the key is smaller, inserts it into the left subtree.
-            root.left = insert(root.left, key, value);
-        } else if (comparison > 0) {
-            // If the key is larger, inserts it into the right subtree.
-            root.right = insert(root.right, key, value);
-        } else {
-            /* If the key already exists, updates the value associated with
-             * it.
-             */
-            root.value = value;
-        }
-        // Returns the root of the BST after the insertion.
-        return root;
-    }
-
-    /** Deletes a node with the given key using recursion if it exists and
-     *  returns the root of the BST after the deletion.
-     */
-    private Node delete(Node root, K key) {
-        if (root == null) {
-            return null;
-        }
-        int comparison = key.compareTo(root.key);
-        if (comparison < 0) {
-            root.left = delete(root.left, key);
-        } else if (comparison > 0) {
-            root.right = delete(root.right, key);
-        } else {
-            if (root.left == null) {
-                return root.right;
-            }
-            if (root.right == null) {
-                return root.left;
-            }
-            Node temp = root;
-            root = min(root.right);
-            root.right = deleteMin(temp.right);
-            root.left = temp.left;
-        }
-        return root;
-    }
-
-    /** Returns the smallest node in the BST. */
-    private Node min(Node root) {
-        if (root == null) {
-            return null;
-        }
-        if (root.left == null) {
-            return root;
-        }
-        return min(root.left);
-    }
-
-    /** Deletes the smallest node in the BST and returns the root of the BST
-     *  after the deletion.
-     */
-    private Node deleteMin(Node root) {
-        if (root.left == null) {
-            return root.right;
-        }
-        root.left = deleteMin(root.left);
-        return root;
-    }
-
-    /** Searches the node that has the given key using recursion. Returns the
-     *  node if it exists, otherwise returns null.
-     */
-    private Node search(Node root, K key) {
-        if (root == null) {
-            return null;
-        }
-        int comparison = key.compareTo(root.key);
-        if (comparison < 0) {
-            // If the key is smaller, searches the left subtree.
-            return search(root.left, key);
-        } else if (comparison > 0) {
-            // If the key is larger, searches the right subtree.
-            return search(root.right, key);
-        } else {
-            // If the key is equal, returns the current node.
-            return root;
-        }
-    }
-
     @Override
     /** Removes all of the mappings from this map. */
     public void clear() {
@@ -157,6 +63,26 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return node.value;
     }
 
+    /** Searches the node that has the given key using recursion. Returns the
+     *  node if it exists, otherwise returns null.
+     */
+    private Node search(Node root, K key) {
+        if (root == null) {
+            return null;
+        }
+        int cmp = key.compareTo(root.key);
+        if (cmp < 0) {
+            // If the key is smaller, searches the left subtree.
+            return search(root.left, key);
+        } else if (cmp > 0) {
+            // If the key is larger, searches the right subtree.
+            return search(root.right, key);
+        } else {
+            // If the key is equal, returns the current node.
+            return root;
+        }
+    }
+
     @Override
     /** Returns the number of key-value mappings in this map. */
     public int size() {
@@ -169,24 +95,43 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         root = insert(root, key, value);
         size += 1;
     }
-    
-    /** Prints the BSTMap in comparison of increasing key. */
-    public void printIncomparison() {
-        throw new UnsupportedOperationException();
+
+    /** Inserts a node with the given key value pair into the BSTMap using
+     *  recursion and returns the root of the BST after the insertion.
+     */
+    private Node insert(Node root, K key, V value) {
+        if (root == null) {
+            root = new Node(key, value);
+            return root;
+        }
+        /*
+         * Compares the key to the current node's key to determine the
+         * direction.
+         */
+        int cmp = key.compareTo(root.key);
+        if (cmp < 0) {
+            // Key is smaller, inserts it into the left subtree.
+            root.left = insert(root.left, key, value);
+        } else if (cmp > 0) {
+            // Key is larger, inserts it into the right subtree.
+            root.right = insert(root.right, key, value);
+        } else {
+            // Key already exists, updates the value associated with it.
+            root.value = value;
+        }
+        // Returns the root of the BST after the insertion.
+        return root;
     }
 
     @Override
-    /** Returns a Set view of the keys contained in this map. Not required for
-     *  Lab 7.
-     *  If you don't implement this, throw an UnsupportedOperationException.
-     */
+    /** Returns a Set view of the keys contained in this map. */
     public Set<K> keySet() {
         HashSet<K> keySet = new HashSet<>();
         addKeys(root, keySet);
         return keySet;
     }
 
-    public void addKeys(Node root, Set<K> keySet) {
+    private void addKeys(Node root, Set<K> keySet) {
         if (root == null) {
             return;
         }
@@ -199,10 +144,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
     }
 
     @Override
-    /** Removes the mapping for the specified key from this map if present.
-     *  Not required for Lab 7. If you don't implement this, throw an
-     *  UnsupportedOperationException.
-     */
+    /** Removes the mapping for the specified key from this map if present. */
     public V remove(K key) {
         if (containsKey(key)) {
             V value = get(key);
@@ -215,8 +157,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     @Override
     /** Removes the entry for the specified key only if it is currently mapped to
-     *  the specified value. Not required for Lab 7. If you don't implement this,
-     *  throw an UnsupportedOperationException.
+     *  the specified value.
      */
     public V remove(K key, V value) {
         if (containsKey(key)) {
@@ -228,8 +169,87 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return null;
     }
 
+    /** Deletes a node with the given key using recursion if it exists and
+     *  returns the root of the BST after the deletion.
+     */
+    private Node delete(Node root, K key) {
+        if (root == null) {
+            return null;
+        }
+        int cmp = key.compareTo(root.key);
+        if (cmp < 0) {
+            root.left = delete(root.left, key);
+        } else if (cmp > 0) {
+            root.right = delete(root.right, key);
+        } else {
+            /*
+             * Case 1: Node has no left child. Replaces it with its right
+             * child.
+             */
+            if (root.left == null) {
+                return root.right;
+            }
+            /* 
+             * Case 2: Node has no right child. Replaces it with its left
+             * child.
+             */
+            if (root.right == null) {
+                return root.left;
+            }
+            // Case 3: Node has two children.
+            /* 
+             * Finds the smallest node in the right subtree (in-order
+             * successor).
+             */
+            Node temp = root;
+            root = min(root.right);
+            // Deletes the in-order successor from the right subtree.
+            root.right = deleteMin(temp.right);
+            // Reattaches the left subtree to the new root.
+            root.left = temp.left;
+        }
+        return root; // Returns the updated root.
+    }
+
+    /** Returns the smallest node in the BST. */
+    private Node min(Node root) {
+        if (root == null) {
+            return null;
+        }
+        if (root.left == null) {
+            return root;
+        }
+        return min(root.left);
+    }
+
+    /** Deletes the smallest node in the BST and returns the root of the BST
+     *  after the deletion.
+     */
+    private Node deleteMin(Node root) {
+        if (root.left == null) {
+            return root.right;
+        }
+        root.left = deleteMin(root.left);
+        return root;
+    }
+
     /** Returns an iterator over the keys of the BSTMap. */
     public Iterator<K> iterator() {
         return keySet().iterator();
+    }
+
+    
+    /** Prints the BSTMap in order of increasing key. */
+    public void printInOrder() {
+        printInOrder(root);
+    }
+
+    private void printInOrder(Node root) {
+        if (root == null) {
+            return;
+        }
+        printInOrder(root.left);
+        System.out.println(root.key + ": " + root.value);
+        printInOrder(root.right);
     }
 }
