@@ -39,36 +39,28 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
 
     /** Returns true if this map contains a mapping for the specified key. */
     public boolean containsKey(K key) {
-        if (root == null) {
-            return false;
-        }
-        int relation = key.compareTo(root.key);
-        if (relation == 0) {
-            return true;
-        } else if (relation < 0) {
-            root = root.left;
-        } else {
-            root = root.right;
-        }
-        return containsKey(key);
+        return get(key) != null;
     }
 
     /** Returns the value to which the specified key is mapped, or null if
      *  this map contains no mapping for the key.
      */
     public V get(K key) {
+        return search(root, key);
+    }
+
+    public V search(Node root, K key) {
         if (root == null) {
             return null;
         }
-        int relation = key.compareTo(root.key);
-        if (relation == 0) {
-            return root.value;
-        } else if (relation < 0) {
-            root = root.left;
+        int order = key.compareTo(root.key);
+        if (order < 0) {
+            return search(root.left, key);
+        } else if (order > 0) {
+            return search(root.right, key);
         } else {
-            root = root.right;
+            return root.value;
         }
-        return get(key);
     }
 
     /** Returns the number of key-value mappings in this map. */
@@ -78,18 +70,24 @@ public class BSTMap<K extends Comparable, V> implements Map61B<K, V> {
 
     /** Associates the specified value with the specified key in this map. */
     public void put(K key, V value) {
+        root = insert(root, key, value);
+    }
+
+    public Node insert(Node root, K key, V value) {
         if (root == null) {
             root = new Node(key, value);
             size += 1;
-            return;
+            return root;
         }
-        int relation = key.compareTo(root.key);
-        if (relation < 0) {
-            root = root.left;
+        int order = key.compareTo(root.key);
+        if (order < 0) {
+            root.left = insert(root.left, key, value);
+        } else if (order > 0) {
+            root.right = insert(root.right, key, value);
         } else {
-            root = root.right; 
+            root.value = value;
         }
-        put(key, value);
+        return root;
     }
 
     /** Returns a Set view of the keys contained in this map. Not required for
