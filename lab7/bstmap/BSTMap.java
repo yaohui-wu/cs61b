@@ -1,6 +1,7 @@
 package bstmap;
 
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /** Map based on a binary search tree (BST).
@@ -85,6 +86,9 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     /** Returns the smallest node in the BST. */
     private Node min(Node root) {
+        if (root == null) {
+            return null;
+        }
         if (root.left == null) {
             return root;
         }
@@ -177,7 +181,21 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
      *  If you don't implement this, throw an UnsupportedOperationException.
      */
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        HashSet<K> keySet = new HashSet<>();
+        addKeys(root, keySet);
+        return keySet;
+    }
+
+    public void addKeys(Node root, Set<K> keySet) {
+        if (root == null) {
+            return;
+        }
+        K key = root.key;
+        if (!keySet.contains(key)) {
+            keySet.add(key);
+        }
+        addKeys(root.left, keySet);
+        addKeys(root.right, keySet);
     }
 
     @Override
@@ -210,7 +228,8 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
         return null;
     }
 
+    /** Returns an iterator over the keys of the BSTMap. */
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return keySet().iterator();
     }
 }
