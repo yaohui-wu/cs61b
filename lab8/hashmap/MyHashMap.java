@@ -206,7 +206,10 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * UnsupportedOperationException.
      */
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        if (containsKey(key)) {
+            return remove(key, get(key));
+        }
+        return null;
     }
 
     @Override
@@ -216,7 +219,19 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * throw an UnsupportedOperationException.
      */
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (containsKey(key)) {
+            Collection<Node> bucket = buckets[hash(key)];
+            for (Node node : bucket) {
+                V val = node.value;
+                if (key.equals(node.key) && val.equals(value)) {
+                    bucket.remove(node);
+                    keys.remove(key);
+                    size -= 1;
+                    return val;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
