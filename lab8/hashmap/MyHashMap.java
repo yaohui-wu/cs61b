@@ -113,13 +113,12 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         return hashTable;
     }
 
-    // TODO: Implement the methods of the Map61B Interface below
-    // Your code won't compile until you do so!
-
+    /** Returns the hash value for the given key. */
     private int hash(K key) {
         return Math.floorMod(key.hashCode(), capacity);
     }
 
+    /** Resizes the hash table by a geometric factor. */
     private void resize() {
         MyHashMap<K, V> hashTable = new MyHashMap<>(capacity * 2, loadFactor);
         for (K key : keys) {
@@ -234,6 +233,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         return null;
     }
 
+    /** Returns an iterator over the keys of the hash table. */
     @Override
     public Iterator<K> iterator() {
         return keys.iterator();
