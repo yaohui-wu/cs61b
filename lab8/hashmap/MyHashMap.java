@@ -36,7 +36,11 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private static final double DEFAULT_LOAD_FACTOR = 0.75;
     private int size; // Number of elements.
     private int capacity; // Number of buckets.
-    private double loadFactor; // Number of elements / number of buckets.
+    /*
+     * Number of elements / number of buckets cannot exceed this maximum load
+     * factor.
+     */
+    private double loadFactor;
     private Set<K> keys;
 
     /** Constructors */
@@ -112,9 +116,18 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     // TODO: Implement the methods of the Map61B Interface below
     // Your code won't compile until you do so!
 
-    private Collection<Node> hash(K key) {
-        int index = Math.floorMod(key.hashCode(), capacity);
-        return buckets[index];
+    private int hash(K key) {
+        return Math.floorMod(key.hashCode(), capacity);
+    }
+
+    private void resize() {
+        MyHashMap<K, V> hashTable = new MyHashMap<>(capacity * 2, loadFactor);
+        for (K key : keys) {
+            hashTable.put(key, get(key));
+        }
+        buckets = hashTable.buckets;
+        keys = hashTable.keys;
+        capacity *= 2;
     }
 
     @Override
@@ -124,7 +137,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         size = 0;
         capacity = DEFAULT_INITIAL_SIZE;
         loadFactor = DEFAULT_LOAD_FACTOR;
-        keys = new HashSet<>();
+        keys.clear();
     }
 
     @Override
@@ -140,7 +153,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     public V get(K key) {
         if (containsKey(key)) {
-            Collection<Node> bucket = hash(key);
+            Collection<Node> bucket = buckets[hash(key)];
             for (Node node : bucket) {
                 if (key.equals(node.key)) {
                     return node.value;
@@ -163,17 +176,20 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * the old value is replaced.
      */
     public void put(K key, V value) {
+        Collection<Node> bucket = buckets[hash(key)];
         if (containsKey(key)) {
-            Collection<Node> bucket = hash(key);
             for (Node node : bucket) {
                 if (key.equals(node.key)) {
                     node.value = value;
                     return;
                 }
             }
-            bucket.add(createNode(key, value));
-            keys.add(key);
-            size += 1;
+        }
+        bucket.add(createNode(key, value));
+        keys.add(key);
+        size += 1;
+        if (size / capacity > loadFactor) {
+            resize();
         }
     }
 
