@@ -34,6 +34,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     // You should probably define some more!
     private static final int DEFAULT_INITIAL_SIZE = 16;
     private static final double DEFAULT_LOAD_FACTOR = 0.75;
+    private static final int RESIZE_FACTOR = 2;
     private int size; // Number of elements.
     private int capacity; // Number of buckets.
     /*
@@ -118,15 +119,31 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         return Math.floorMod(key.hashCode(), capacity);
     }
 
+    private Collection<Node> getBucket(K key) {
+        return buckets[hash(key)];
+    }
+
+    private Node getNode(Collection<Node> bucket, K key) {
+        for (Node node : bucket) {
+            if (key.equals(node.key)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
     /** Resizes the hash table by a geometric factor. */
     private void resize() {
-        MyHashMap<K, V> hashTable = new MyHashMap<>(capacity * 2, loadFactor);
+        MyHashMap<K, V> hashTable = new MyHashMap<>(
+            capacity * RESIZE_FACTOR,
+            loadFactor
+        );
         for (K key : keys) {
             hashTable.put(key, get(key));
         }
         buckets = hashTable.buckets;
         keys = hashTable.keys;
-        capacity *= 2;
+        capacity *= RESIZE_FACTOR;
     }
 
     @Override
@@ -152,12 +169,9 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     public V get(K key) {
         if (containsKey(key)) {
-            Collection<Node> bucket = buckets[hash(key)];
-            for (Node node : bucket) {
-                if (key.equals(node.key)) {
-                    return node.value;
-                }
-            }
+            Collection<Node> bucket = getBucket(key);
+            Node node = getNode(bucket, key);
+            return node.value;
         }
         return null;
     }
@@ -175,14 +189,11 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * the old value is replaced.
      */
     public void put(K key, V value) {
-        Collection<Node> bucket = buckets[hash(key)];
+        Collection<Node> bucket = getBucket(key);
         if (containsKey(key)) {
-            for (Node node : bucket) {
-                if (key.equals(node.key)) {
-                    node.value = value;
-                    return;
-                }
-            }
+            Node node = getNode(bucket, key);
+            node.value = value;
+            return;
         }
         bucket.add(createNode(key, value));
         keys.add(key);
@@ -219,7 +230,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     public V remove(K key, V value) {
         if (containsKey(key)) {
-            Collection<Node> bucket = buckets[hash(key)];
+            Collection<Node> bucket = getBucket(key);
             for (Node node : bucket) {
                 V val = node.value;
                 if (key.equals(node.key) && val.equals(value)) {
