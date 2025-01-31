@@ -19,18 +19,6 @@ public class Main {
             System.exit(0);
         }
         String firstArg = args[0];
-        if (firstArg == "init") {
-            // Handles the "init" command.
-            break;
-        }
-        // Current working directory
-        String cwd = System.getProperty("usr.dir");
-        File gitlet = Utils.join(cwd, ".gitlet");
-        if (!gitlet.exists()) {
-            String message = "Not in an initialized Gitlet directory.";
-            System.out.println(message);
-            System.exit(0);
-        }
         switch(firstArg) {
             case "init":
                 // TODO: handle the `init` command
