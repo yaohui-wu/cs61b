@@ -1,18 +1,18 @@
 # Gitlet Design Document
 
-**Name**:
+**Name**: Yaohui Wu
 
 ## Classes and Data Structures
 
-### Class 1
+### Commit
 
 #### Fields
 
-1. Field 1
-2. Field 2
+1. Message
+2. Timestamp
 
 
-### Class 2
+### Repository
 
 #### Fields
 
