@@ -9,8 +9,7 @@
 #### Fields
 
 1. message - The message of this commit.
-2. timestamp - The date of the commit.
-3. parent - The reference to the parent of this commit.
+2. date - The date of the commit.
 
 
 ### Repository

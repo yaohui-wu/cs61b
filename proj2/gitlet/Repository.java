@@ -26,5 +26,27 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
     /* TODO: fill in the rest of this class. */
-    private Repository() {}
+    private void init() {
+        validateRepo();
+        GITLET_DIR.mkdir();
+        Commit initCommit = new Commit();
+    }
+
+    private void validateRepo() {
+        if (GITLET_DIR.exists()) {
+            String message = """
+                    A Gitlet version-control system already exists in the
+                    current directory.
+                    """;
+            Main.exit(message);
+        }
+    }
+
+    private void add(String fileName) {}
+
+    private void commit(String message) {}
+
+    private void checkout() {}
+
+    private void log() {}
 }

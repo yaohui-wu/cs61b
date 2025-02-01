@@ -10,9 +10,8 @@ public class Main {
      */
     public static void main(String[] args) {
         // TODO: what if args is empty?
-        // No input arguments.
-        int length = args.length;
-        if (length == 0) {
+        int argsNum = args.length; // Number of input arguments.
+        if (argsNum == 0) {
             String message = "Please enter a command.";
             exit(message);
         }
@@ -20,16 +19,17 @@ public class Main {
         switch(firstArg) {
             case "init":
                 // TODO: handle the `init` command
+                Repository.init();
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
                 int operandsNum = 2;
-                validateOperands(operandsNum, length);
+                validateOperands(operandsNum, argsNum);
                 break;
             // TODO: FILL THE REST IN
             case "commit":
                 int operandsNum = 2;
-                validateOperands(operandsNum, length);
+                validateOperands(operandsNum, argsNum);
                 break;
             case "checkout":
                 break;
@@ -51,8 +51,8 @@ public class Main {
     }
 
     /** Validates a command has the correct number and format of operands. */
-    private void validateOperands(int num, int length) {
-        if (num != length) {
+    private void validateOperands(int num, int argsNum) {
+        if (num != argsNum) {
             String message = "Incorrect operands.";
             exit(message);
         }
