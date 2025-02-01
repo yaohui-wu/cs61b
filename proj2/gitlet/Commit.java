@@ -21,9 +21,9 @@ public class Commit {
 
     /** The message of this Commit. */
     private String message;
-    // Date of the commit.
+    // The date of the commit.
     private Date timestamp;
-    // Reference to the parent commit.
+    // The reference to the parent of this commit.
     private Commit parent;
 
     /* TODO: fill in the rest of this class. */

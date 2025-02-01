@@ -11,12 +11,10 @@ public class Main {
     public static void main(String[] args) {
         // TODO: what if args is empty?
         // No input arguments.
-        if (args.length == 0) {
+        int length = args.length;
+        if (length == 0) {
             String message = "Please enter a command.";
-            // Prints the error message.
-            System.out.println(message);
-            // Exits the program immediately.
-            System.exit(0);
+            exit(message);
         }
         String firstArg = args[0];
         switch(firstArg) {
@@ -25,9 +23,13 @@ public class Main {
                 break;
             case "add":
                 // TODO: handle the `add [filename]` command
+                int operandsNum = 2;
+                validateOperands(operandsNum, length);
                 break;
             // TODO: FILL THE REST IN
             case "commit":
+                int operandsNum = 2;
+                validateOperands(operandsNum, length);
                 break;
             case "checkout":
                 break;
@@ -36,8 +38,23 @@ public class Main {
             default:
                 // Input command does not exist.
                 String message = "No command with that name exists."
-                System.out.println(message);
-                System.exit(0);
+                exit(message);
+        }
+    }
+
+    /** Prints an error message and exits the program. */
+    private void exit(String message) {
+        // Prints the error message.
+        Utils.message(message);
+        // Exits the program with error code 0 immediately.
+        System.exit(0);
+    }
+
+    /** Validates a command has the correct number and format of operands. */
+    private void validateOperands(int num, int length) {
+        if (num != length) {
+            String message = "Incorrect operands.";
+            exit(message);
         }
     }
 }

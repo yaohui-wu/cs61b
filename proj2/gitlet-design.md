@@ -8,16 +8,17 @@
 
 #### Fields
 
-1. Message
-2. Timestamp
+1. message - The message of this commit.
+2. timestamp - The date of the commit.
+3. parent - The reference to the parent of this commit.
 
 
 ### Repository
 
 #### Fields
 
-1. Field 1
-2. Field 2
+1. CWD - The current working directory.
+2. GITLET_DIR - The .gitlet directory.
 
 
 ## Algorithms
