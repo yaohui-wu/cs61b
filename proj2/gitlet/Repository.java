@@ -27,15 +27,4 @@ public class Repository {
 
     /* TODO: fill in the rest of this class. */
     private Repository() {}
-
-    private void init() {
-        if (GITLET_DIR.exists()) {
-            String message = """
-                    A Gitlet version-control system already exists in the
-                    current directory
-                    """;
-            System.out.println(message);
-            System.exit(0);
-        }
-    }
 }

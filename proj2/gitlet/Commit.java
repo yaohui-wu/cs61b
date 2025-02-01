@@ -27,7 +27,5 @@ public class Commit {
     private Commit parent;
 
     /* TODO: fill in the rest of this class. */
-    private Commit(String msg) {
-        message = msg;
-    }
+    private Commit() {}
 }
