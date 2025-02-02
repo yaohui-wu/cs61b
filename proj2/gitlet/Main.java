@@ -24,12 +24,14 @@ public class Main {
             case "add":
                 // TODO: handle the `add [filename]` command
                 int operandsNum = 2;
-                validateOperands(operandsNum, argsNum);
+                validateArgs(operandsNum, argsNum);
+                String fileName = args[1];
+                Repository.add(fileName);
                 break;
             // TODO: FILL THE REST IN
             case "commit":
                 int operandsNum = 2;
-                validateOperands(operandsNum, argsNum);
+                validateArgs(operandsNum, argsNum);
                 break;
             case "checkout":
                 break;
@@ -51,7 +53,7 @@ public class Main {
     }
 
     /** Validates a command has the correct number and format of operands. */
-    private void validateOperands(int num, int argsNum) {
+    private void validateArgs(int num, int argsNum) {
         if (num != argsNum) {
             String message = "Incorrect operands.";
             exit(message);

@@ -29,7 +29,12 @@ public class Repository {
     private void init() {
         validateRepo();
         GITLET_DIR.mkdir();
+        Commit.COMMITS_DIR.mkdir();
+        Branch.BRANCHES_DIR.mkdir();
+        Blob.BLOBS_DIR.mkdir();
         Commit initCommit = new Commit();
+        initCommit.save();
+        StagingArea stagingArea = new StagingArea();
     }
 
     private void validateRepo() {
@@ -42,7 +47,13 @@ public class Repository {
         }
     }
 
-    private void add(String fileName) {}
+    private void add(String fileName) {
+        File file = join(CWD, fileName);
+        if (!file.exists()) {
+            String message = "File does not exist.";
+            Main.exit(message);
+        }
+    }
 
     private void commit(String message) {}
 
