@@ -1,13 +1,12 @@
 package gitlet;
 
 // TODO: any imports you need here
-
+import java.io.File;
+import static gitlet.Utils.*;
+import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Serializable;
-import java.io.File;
-import static gitlet.Utils.*;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -29,28 +28,26 @@ public class Commit implements Serializable {
     private String message;
     // The date of the commit.
     private String timestamp;
-    private String hash;
+    private String id;
     private String firstParent;
     private String secondParent;
-    private HashMap<String, String> fileToBlob;
+    private HashMap<String, String> blob;
 
     /* TODO: fill in the rest of this class. */
-    private Commit() {
+    public Commit() {
         message = "initial commit";
         timestamp = timestamp(Instant.EPOCH);
-        hash = hash();
+        id = hash();
         firstParent = null;
-        secondParent = null;
-        fileToBlob = new HashMap<>();
+        blob = new HashMap<>();
     }
 
-    private Commit(String msg, String firstParentId, String secondParentId) {
+    public Commit(String msg, String firstParentId) {
         message = msg;
         timestamp = timestamp(Instant.now());
-        hash = hash();
+        id = hash();
         firstParent = firstParentId;
-        secondParent = secondParentId;
-        fileToBlob = new HashMap<>();
+        blob = new HashMap<>();
     }
 
     private String timestamp(Instant time) {
@@ -61,13 +58,29 @@ public class Commit implements Serializable {
         return timestamp;
     }
 
-    private int hash() {
+    private String hash() {
         return Utils.sha1(Utils.serialize(this));
     }
 
-    private void save() {
+    public String getId() {
+        return id;
+    }
+
+    public void save() {
         File file = join(COMMITS_DIR, hash);
         writeObject(file, this);
+    }
+
+    public Commit load(String commitId) {
+        File file = join(COMMITS_DIR, commitId);
+    }
+
+    public HashMap<String, String> getBlob() {
+        return blob;
+    }
+
+    public String getBlobId(File fileName) {
+        return blob.get(fileName);
     }
 
     @Override

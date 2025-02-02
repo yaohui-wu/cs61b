@@ -3,11 +3,19 @@ package gitlet;
 import java.io.File;
 import static gitlet.Utils.*;
 
-
 public class Branch {
-    public static final File BRANCHES_DIR = join(GITLET_DIR, "branches");
+    public static final File BRANCHES_DIR = join(Repository.GITLET_DIR, "branches");
 
-    private Branch() {
-        File master = join(BRANCHES_DIR, "master");
+    public void setCommitId(String branchName, String commitId) {
+        File branchFile = join(BRANCHES_DIR, branchName);
+        writeContents(branchFile, commitId);
+    }
+
+    public String getCommitId(String branchName) {
+        File branchFile = join(BRANCHES_DIR, branchName);
+        if (branchFile.exists()) {
+            return readContentsAsString(branchFile);
+        }
+        return null;
     }
 }

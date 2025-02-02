@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import static gitlet.Utils.*;
+import java.util.HashMap;
 
 // TODO: any imports you need here
 
@@ -32,9 +33,12 @@ public class Repository {
         Commit.COMMITS_DIR.mkdir();
         Branch.BRANCHES_DIR.mkdir();
         Blob.BLOBS_DIR.mkdir();
+        StagingArea stagingArea = new StagingArea();
+        stagingArea.save();
         Commit initCommit = new Commit();
         initCommit.save();
-        StagingArea stagingArea = new StagingArea();
+        Branch.setCommitId("master", initCommit.getId());
+        HEAD.setBranchName("master");
     }
 
     private void validateRepo() {
@@ -53,9 +57,58 @@ public class Repository {
             String message = "File does not exist.";
             Main.exit(message);
         }
+        Blob blob = new Blob(readContents(file));
+        String blobId = blob.getId();
+        Commit head = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+        StagingArea stagingArea = StagingArea.load();
+        if (blobId.equals(head.getBlobId(fileName))) {
+            stagingArea.clear();
+            stagingArea.save();
+            return;
+        }
+        HashMap<String, String> addition = stagingArea.getAddition();
+        if (blobId.equals(addition.get(fileName))) {
+            addition.remove(fileName);
+        }
+        addition.put(fileName, blobId);
+        HashSet<String> removal = stagingArea.getRemoval();
+        removal.remove(fileName);
+        blob.save();
+        stagingArea.save();
     }
 
-    private void commit(String message) {}
+    private void commit(String message) {
+        String commitId = Branch.getCommitId(HEAD.getBranchName());
+        commit(message, commitId);
+    }
+    
+    private void commit(String message, String commitId) {
+        StagingArea stagingArea = StagingArea.load();
+        if (stagingArea.isEmpty()) {
+            String message = "No changes added to the commit."
+            Main.exit(message);
+        }
+        if (message.isEmpty()) {
+            String message = "Please enter a commit message."
+            Main.exit(message);
+        }
+        Commit commit = new Commit(message, commitId);
+        HashMap<String, String> blob = commit.getBlob();
+        HashMap<String, String> addition = stagingArea.getAddition();
+        for (Map.Entry<String, String> entry : addition.entrySet()) {
+            String fileName = entry.getKey();
+            String blobId = entry.getValue();
+            blob.put(fileName, blobId);
+        }
+        HashSet<String> removal = stagingArea.getRemoval();
+        for (String fileName : removal) {
+            blob.remove(fileName);
+        }
+        Branch.setCommitId(HEAD.getBranchName(), commit.getId());
+        stagingArea.clear();
+        stagingArea.save();
+        commit.save();
+    }
 
     private void checkout() {}
 
