@@ -1,7 +1,7 @@
 package gitlet;
 
-import java.io.File;
 import static gitlet.Utils.*;
+import java.io.File;
 
 public class HEAD {
     public static final File HEAD = join(Repository.GITLET_DIR, "HEAD");

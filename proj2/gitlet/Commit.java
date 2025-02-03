@@ -1,8 +1,8 @@
 package gitlet;
 
 // TODO: any imports you need here
-import java.io.File;
 import static gitlet.Utils.*;
+import java.io.File;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -75,11 +75,11 @@ public class Commit implements Serializable {
         return blob;
     }
 
-    public String getBlobId(File fileName) {
+    public String getBlobId(String fileName) {
         return blob.get(fileName);
     }
 
-    public static void save() {
+    public void save() {
         File file = join(COMMITS_DIR, id);
         writeObject(file, this);
     }
@@ -93,7 +93,7 @@ public class Commit implements Serializable {
     }
 
     @Override
-    private String toString() {
+    public String toString() {
         return "===\n" + "commit " + id + "\n" + "Date: " + timestamp + "\n"
             + message + "\n";
     }

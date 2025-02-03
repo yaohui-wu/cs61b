@@ -1,7 +1,7 @@
 package gitlet;
 
-import java.io.File;
 import static gitlet.Utils.*;
+import java.io.File;
 
 public class Branch {
     public static final File BRANCHES_DIR = join(Repository.GITLET_DIR, "branches");
