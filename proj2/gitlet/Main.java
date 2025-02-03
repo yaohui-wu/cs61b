@@ -32,20 +32,23 @@ public class Main {
             case "commit":
                 int operandsNum = 2;
                 validateArgs(operandsNum, argsNum);
+                String message = args[1];
+                Repository.commit(message);
                 break;
             case "checkout":
+                Repository.checkout(args);
                 break;
             case "log":
                 break;
             default:
                 // Input command does not exist.
-                String message = "No command with that name exists."
+                message = "No command with that name exists.";
                 exit(message);
         }
     }
 
     /** Prints an error message and exits the program. */
-    private void exit(String message) {
+    public static void exit(String message) {
         // Prints the error message.
         Utils.message(message);
         // Exits the program with error code 0 immediately.
@@ -53,7 +56,7 @@ public class Main {
     }
 
     /** Validates a command has the correct number and format of operands. */
-    private void validateArgs(int num, int argsNum) {
+    private static void validateArgs(int num, int argsNum) {
         if (num != argsNum) {
             String message = "Incorrect operands.";
             exit(message);

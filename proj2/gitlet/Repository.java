@@ -3,6 +3,12 @@ package gitlet;
 import java.io.File;
 import static gitlet.Utils.*;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 // TODO: any imports you need here
 
@@ -27,7 +33,7 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
     /* TODO: fill in the rest of this class. */
-    private void init() {
+    public static void init() {
         validateRepo();
         GITLET_DIR.mkdir();
         Commit.COMMITS_DIR.mkdir();
@@ -51,7 +57,7 @@ public class Repository {
         }
     }
 
-    private void add(String fileName) {
+    public static void add(String fileName) {
         File file = join(CWD, fileName);
         if (!file.exists()) {
             String message = "File does not exist.";
@@ -77,7 +83,7 @@ public class Repository {
         stagingArea.save();
     }
 
-    private void commit(String message) {
+    public static void commit(String message) {
         String commitId = Branch.getCommitId(HEAD.getBranchName());
         commit(message, commitId);
     }
@@ -85,11 +91,11 @@ public class Repository {
     private void commit(String message, String commitId) {
         StagingArea stagingArea = StagingArea.load();
         if (stagingArea.isEmpty()) {
-            String message = "No changes added to the commit."
+            String message = "No changes added to the commit.";
             Main.exit(message);
         }
         if (message.isEmpty()) {
-            String message = "Please enter a commit message."
+            String message = "Please enter a commit message.";
             Main.exit(message);
         }
         Commit commit = new Commit(message, commitId);
@@ -110,7 +116,107 @@ public class Repository {
         commit.save();
     }
 
-    private void checkout() {}
+    public static void checkout(String[] args) {
+        int argsNum = args.length;
+        if (argsNum == 3 &&  args[1].equals("--")) {
+            String headId = Branch.getCommitId(HEAD.getBranchName());
+            checkoutFile(headId, args[2]);
+            return;
+        } else if (argsNum == 4 && args[2].equals("--")) {
+            checkoutFile(args[1], args[3]);
+            return;
+        } else if (argsNum == 2) {
+            checkoutBranch(args[1]);
+            return;
+        } else {
+            String message = "Incorrect operands.";
+            Main.exit(message);
+        }
+    }
 
-    private void log() {}
+    private void checkoutFile(String commitId, String fileName) {
+        Commit commit = Commit.load(commitId);
+        if (commit == null) {
+            String message = "No commit with that id exists.";
+            Main.exit(message);
+        }
+        String blobId = commit.getBlobId(fileName);
+        if (blobId == null) {
+            String message = "File does not exist in that commit.";
+            Main.exit(message);
+        }
+        byte[] contents = readContents(join(Blob.BLOBS_DIR, blobId));
+        writeContents(join(CWD, fileName), (Object) contents);
+    }
+
+    private void checkoutBranch(String branchName) {
+        File branch = join(Branch.BRANCHES_DIR, branchName);
+        if (!branch.exists()) {
+            String message = "No such branch exists.";
+            Main.exit(message);
+        }
+        if (branchName.equals(HEAD.getBranchName())) {
+            String message = "No need to checkout the current branch.";
+            Main.exit(message);
+        }
+        String commitId = Branch.getCommitId(branchName);
+        checkoutCommit(commitId);
+        HEAD.setBranchName(branchName);
+    }
+
+    private void checkoutCommit(String commitId) {
+        StagingArea stagingArea = StagingArea.load();
+        Commit commit = Commit.load(commitId);
+        List<String> untrackedFiles = getUntrackedFiles(commitId);
+        Set<String> fileNames = commit.getBlob().keySet();
+        for (String fileName : fileNames) {
+            if (untrackedFiles.contains(fileName)) {
+                String message = """
+                    There is an untracked file in the way; delete it, or add
+                    and commit it first.
+                    """;
+                Main.exit(message);
+            }
+        }
+        for (String fileName : fileNames) {
+            String blobId = blob.getBlobId(fileName);
+            byte[] contents = readContents(join(Blob.BLOBS_DIR, blobId));
+            writeContents(join(CWD, fileName), (Object) contents);
+        }
+        Commit head = Commit.load(Branch.getCommitId(HEAD.getBranchName()));
+        for (String fileName : head.getBlob().keySet()) {
+            if (!fileNames.contains(fileName)) {
+                join(CWD, fileName).delete();
+            }
+        }
+        stagingArea.clear();
+        stagingArea.save();
+    }
+
+    private List<String> getUntrackedFiles(String commitId) {
+        Commit commit = Commit.load(commitId);
+        HashMap<String, String> blob = commit.getBlob();
+        StagingArea stagingArea = StagingArea.load();
+        HashMap<String, String> addition  = stagingArea.getAddition();
+        List<String> CWDfileNames = plainFilenamesIn(CWD);
+        List<String> untrackedFiles = new ArrayList<>();
+        for (String fileName : CWDfileNames) {
+            boolean isTracked = blob.containsKey(fileName);
+            boolean isStaged = addition.containsKey(fileName);
+            if (!isTracked && !isStaged) {
+                untrackedFiles.add(fileName);
+            }
+        }
+        Collections.sort(untrackedFiles);
+        return untrackedFiles;
+    }
+
+    public static void log() {
+        String commitId = Branch.getCommitId(HEAD.getBranchName());
+        Commit commit = Commit.load(commitId);
+        while (commit != null) {
+            System.out.println(commit);
+            commit = commit.load(commit.getFirstParent());
+        }
+    }
 }

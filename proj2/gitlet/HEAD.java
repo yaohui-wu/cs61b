@@ -4,13 +4,13 @@ import java.io.File;
 import static gitlet.Utils.*;
 
 public class HEAD {
-    public static final File HEAD = join(Repository.GITLET_DIR, "head");
+    public static final File HEAD = join(Repository.GITLET_DIR, "HEAD");
 
-    public void setBranchName(String branchName) {
+    public static void setBranchName(String branchName) {
         writeContents(HEAD, branchName);
     }
 
-    public String getBranchName() {
+    public static String getBranchName() {
         return readContentsAsString(HEAD);
     }
 }

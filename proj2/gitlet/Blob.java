@@ -10,7 +10,7 @@ public class Blob implements Serializable {
     private byte[] contents;
     private String id;
 
-    public Blob(String blobContents) {
+    public Blob(byte[] blobContents) {
         contents = blobContents;
         id = hash();
     }

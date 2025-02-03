@@ -6,12 +6,12 @@ import static gitlet.Utils.*;
 public class Branch {
     public static final File BRANCHES_DIR = join(Repository.GITLET_DIR, "branches");
 
-    public void setCommitId(String branchName, String commitId) {
+    public static void setCommitId(String branchName, String commitId) {
         File branchFile = join(BRANCHES_DIR, branchName);
         writeContents(branchFile, commitId);
     }
 
-    public String getCommitId(String branchName) {
+    public static String getCommitId(String branchName) {
         File branchFile = join(BRANCHES_DIR, branchName);
         if (branchFile.exists()) {
             return readContentsAsString(branchFile);

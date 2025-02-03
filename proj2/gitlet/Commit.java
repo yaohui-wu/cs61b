@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -23,7 +24,7 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    public static final File COMMITS_DIR = join(GITLET_DIR, "commits");
+    public static final File COMMITS_DIR = join(Repository.GITLET_DIR, "commits");
     /** The message of this Commit. */
     private String message;
     // The date of the commit.
@@ -66,15 +67,10 @@ public class Commit implements Serializable {
         return id;
     }
 
-    public void save() {
-        File file = join(COMMITS_DIR, hash);
-        writeObject(file, this);
+    public String getFirstParent() {
+        return firstParent;
     }
-
-    public Commit load(String commitId) {
-        File file = join(COMMITS_DIR, commitId);
-    }
-
+    
     public HashMap<String, String> getBlob() {
         return blob;
     }
@@ -83,9 +79,22 @@ public class Commit implements Serializable {
         return blob.get(fileName);
     }
 
+    public static void save() {
+        File file = join(COMMITS_DIR, id);
+        writeObject(file, this);
+    }
+
+    public static Commit load(String commitId) {
+        File file = join(COMMITS_DIR, commitId);
+        if (!file.exists()) {
+            return null;
+        }
+        return readObject(file, Commit.class);
+    }
+
     @Override
     private String toString() {
-        return "===\n" + "commit " + hash + "\n" + "Date: " + timestamp + "\n"
+        return "===\n" + "commit " + id + "\n" + "Date: " + timestamp + "\n"
             + message + "\n";
     }
 }
