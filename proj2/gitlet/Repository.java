@@ -143,6 +143,7 @@ public class Repository {
             removal.add(fileName);
             restrictedDelete(fileName);
         }
+        stagingArea.save();
     }
 
     /** Displays information about each commit in reverse chronological order
@@ -196,17 +197,20 @@ public class Repository {
             }
             System.out.println(branch);
         }
+        System.out.println();
         System.out.println("=== Staged Files ===");
         StagingArea stagingArea = StagingArea.load();
         TreeMap<String, String> addition = stagingArea.getAddition();
         for (String fileName : addition.keySet()) {
             System.out.println(fileName);
         }
+        System.out.println();
         System.out.println("=== Removed Files ===");
         TreeSet<String> removal = stagingArea.getRemoval();
         for (String fileName : removal) {
             System.out.println(fileName);
         }
+        System.out.println();
     }
 
     private static List<String> getUntrackedFiles(String commitId) {
@@ -214,9 +218,9 @@ public class Repository {
         TreeMap<String, String> blob = commit.getBlob();
         StagingArea stagingArea = StagingArea.load();
         TreeMap<String, String> addition  = stagingArea.getAddition();
-        List<String> CWDfiles = plainFilenamesIn(CWD);
+        List<String> cwdFiles = plainFilenamesIn(CWD);
         List<String> untrackedFiles = new ArrayList<>();
-        for (String fileName : CWDfiles) {
+        for (String fileName : cwdFiles) {
             boolean tracked = blob.containsKey(fileName);
             boolean staged = addition.containsKey(fileName);
             if (!tracked && !staged) {
@@ -352,7 +356,7 @@ public class Repository {
         restrictedDelete(branch);
     }
 
-    public static void reset() {} {
+    public static void reset() {
         reset(Branch.getId(HEAD.getBranch()));
     }
 
@@ -371,6 +375,6 @@ public class Repository {
 
     /** Merges files from the given branch into the current branch. */
     public static void merge(String branch) {
-        return;
+        throw new UnsupportedOperationException();
     }
 }

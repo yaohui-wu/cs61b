@@ -30,7 +30,7 @@ public class Commit implements Serializable {
 
     public Commit() {
         message = "initial commit";
-        timestamp = timestamp(Instant.EPOCH);
+        timestamp = setTimestamp(Instant.EPOCH);
         id = hash();
         firstParentId = null;
         blob = new TreeMap<>();
@@ -38,13 +38,13 @@ public class Commit implements Serializable {
 
     public Commit(String msg, String firstParent) {
         message = msg;
-        timestamp = timestamp(Instant.now());
+        timestamp = setTimestamp(Instant.now());
         id = hash();
         firstParentId = firstParent;
         blob = new TreeMap<>();
     }
 
-    private String timestamp(Instant time) {
+    private String setTimestamp(Instant time) {
         DateTimeFormatter formatter
             = DateTimeFormatter.ofPattern("EEE MMM d HH:mm:ss yyyy Z")
             .withZone(ZoneId.systemDefault());
