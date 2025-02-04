@@ -8,8 +8,8 @@
 
 #### Fields
 
-1. message - The message of this commit.
-2. date - The date of the commit.
+1. message - The message of the commit.
+2. timestamp - The timestamp of the commit.
 
 
 ### Repository
