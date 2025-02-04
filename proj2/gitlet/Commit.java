@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * Represents a gitlet commit object.
@@ -26,14 +26,14 @@ public class Commit implements Serializable {
     // SHA-1 ID of the second parent commit.
     private String secondParentId;
     // Maps the file name to the blob ID.
-    private HashMap<String, String> blob;
+    private TreeMap<String, String> blob;
 
     public Commit() {
         message = "initial commit";
         timestamp = timestamp(Instant.EPOCH);
         id = hash();
         firstParentId = null;
-        blob = new HashMap<>();
+        blob = new TreeMap<>();
     }
 
     public Commit(String msg, String firstParent) {
@@ -41,7 +41,7 @@ public class Commit implements Serializable {
         timestamp = timestamp(Instant.now());
         id = hash();
         firstParentId = firstParent;
-        blob = new HashMap<>();
+        blob = new TreeMap<>();
     }
 
     private String timestamp(Instant time) {
@@ -56,6 +56,10 @@ public class Commit implements Serializable {
         return Utils.sha1(Utils.serialize(this));
     }
 
+    public String getMessage() {
+        return message;
+    }
+
     public String getId() {
         return id;
     }
@@ -64,7 +68,7 @@ public class Commit implements Serializable {
         return firstParentId;
     }
     
-    public HashMap<String, String> getBlob() {
+    public TreeMap<String, String> getBlob() {
         return blob;
     }
 

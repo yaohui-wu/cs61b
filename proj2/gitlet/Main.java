@@ -9,39 +9,75 @@ public class Main {
      *  <COMMAND> <OPERAND1> <OPERAND2> ... 
      */
     public static void main(String[] args) {
-        // TODO: what if args is empty?
         int argsNum = args.length; // Number of input arguments.
-        String message;
+        String message; // Error message.
         if (argsNum == 0) {
             message = "Please enter a command.";
             exit(message);
         }
-        String firstArg = args[0];
-        int num; // Number of required arguments for a command.
-        switch(firstArg) {
+        switch(args[0]) {
             case "init":
-                // TODO: handle the `init` command
+                // Handles the `init` command.
+                validateArgs(1, argsNum);
                 Repository.init();
                 break;
             case "add":
-                // TODO: handle the `add [filename]` command
-                num = 2;
-                validateArgs(num, argsNum);
-                String fileName = args[1];
-                Repository.add(fileName);
+                // Handles the `add [filename]` command.
+                validateArgs(2, argsNum);
+                Repository.add(args[1]);
                 break;
-            // TODO: FILL THE REST IN
             case "commit":
-                num = 2;
-                validateArgs(num, argsNum);
-                message = args[1];
-                Repository.commit(message);
+                // Handles the `commit [message]` command.
+                validateArgs(2, argsNum);
+                Repository.commit(args[1]);
+                break;
+            case "rm":
+                // Handles the `rm [file name]` command.
+                validateArgs(2, argsNum);
+                Repository.rm(args[1]);
+                break;
+            case "log":
+                // Handles the `log` command.
+                validateArgs(1, argsNum);
+                Repository.log();
+                break;
+            case "global-log":
+                // Handles the `global-log` command.
+                validateArgs(1, argsNum);
+                Repository.globalLog();
+                break;
+            case "find":
+                // Handles the `find [commit message]` command.
+                validateArgs(2, argsNum);
+                Repository.find(args[1]);
+                break;
+            case "status":
+                // Handles the `status` command.
+                validateArgs(1, argsNum);
+                Repository.status();
                 break;
             case "checkout":
                 Repository.checkout(args);
                 break;
-            case "log":
-                Repository.log();
+            case "branch":
+                // Handles the `branch [branch name]` command.
+                validateArgs(2, argsNum);
+                Repository.branch(args[1]);
+                break;
+            case "rm-branch":
+                // Handles the `rm-branch [branch name]` command.
+                validateArgs(2, argsNum);
+                Repository.rmBranch(args[1]);
+                break;
+            case "reset":
+                // Handles the `reset [commit id]` command.
+                validateArgs(2, argsNum);
+                Repository.reset(args[1]);
+                break;
+            case "merge":
+                // Handles the `merge [branch name]` command.
+                validateArgs(2, argsNum);
+                Repository.merge(args[1]);
                 break;
             default:
                 // Input command does not exist.
@@ -58,7 +94,7 @@ public class Main {
         System.exit(0);
     }
 
-    /** Validates a command has the correct number and format of operands. */
+    /** Validates a command has the correct number of arguments. */
     private static void validateArgs(int num, int argsNum) {
         if (num != argsNum) {
             String message = "Incorrect operands.";

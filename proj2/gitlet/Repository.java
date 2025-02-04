@@ -3,9 +3,9 @@ package gitlet;
 import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +55,7 @@ public class Repository {
         String blobId = blob.getId();
         Commit head = Commit.load(Branch.getId(HEAD.getBranch()));
         StagingArea stagingArea = StagingArea.load();
-        HashMap<String, String> addition = stagingArea.getAddition();
+        TreeMap<String, String> addition = stagingArea.getAddition();
         /*
          * If the current working version of the file is identical to the
          * version in the current commit, do not stage it to be added, and
@@ -71,7 +71,7 @@ public class Repository {
             addition.put(fileName, blobId);
         }
         // File is no longer staged for removal if it was.
-        HashSet<String> removal = stagingArea.getRemoval();
+        TreeSet<String> removal = stagingArea.getRemoval();
         removal.remove(fileName);
         blob.save();
         stagingArea.save();
@@ -97,8 +97,8 @@ public class Repository {
             Main.exit(msg);
         }
         Commit commit = new Commit(message, firstParentId);
-        HashMap<String, String> blob = commit.getBlob();
-        HashMap<String, String> addition = stagingArea.getAddition();
+        TreeMap<String, String> blob = commit.getBlob();
+        TreeMap<String, String> addition = stagingArea.getAddition();
         // Updates the files staged for addition.
         for (Map.Entry<String, String> entry : addition.entrySet()) {
             String fileName = entry.getKey();
@@ -106,7 +106,7 @@ public class Repository {
             blob.put(fileName, blobId);
         }
         // Updates the files staged for removal.
-        HashSet<String> removal = stagingArea.getRemoval();
+        TreeSet<String> removal = stagingArea.getRemoval();
         for (String fileName : removal) {
             blob.remove(fileName);
         }
@@ -118,8 +118,35 @@ public class Repository {
         commit.save();
     }
 
-    /** Displays information about each commit backwards along the commit tree
-     *  until the initial commit, following the first parent commit links.
+    /** Unstages the file if it is currently staged for addition. If the file
+     *  is tracked in the current commit, stages it for removal and removes the
+     *  file from the working directory.
+     */
+    public static void rm(String fileName) {
+        String headId = Branch.getId(HEAD.getBranch());
+        Commit head = Commit.load(headId);
+        StagingArea stagingArea = StagingArea.load();
+        TreeMap<String, String> addition = stagingArea.getAddition();
+        boolean tracked = head.getBlob().containsKey(fileName);
+        boolean staged = addition.containsKey(fileName);
+        if (!tracked && !staged) {
+            String message = "No reason to remove the file.";
+            Main.exit(message);    
+        }
+        if (staged) {
+            // Unstages the file from addition.
+            addition.remove(fileName);
+        }
+        if (tracked) {
+            // Stages the file for removal and removes it.
+            TreeSet<String> removal = stagingArea.getRemoval();
+            removal.add(fileName);
+            restrictedDelete(fileName);
+        }
+    }
+
+    /** Displays information about each commit in reverse chronological order
+     *  until the initial commit following the first parent.
      */
     public static void log() {
         String commitId = Branch.getId(HEAD.getBranch());
@@ -130,11 +157,63 @@ public class Repository {
         }
     }
 
+    /** Displays information about all commits. */
+    public static void globalLog() {
+        List<String> commitIds = plainFilenamesIn(Commit.COMMITS_DIR);
+        for (String commitId : commitIds) {
+            Commit commit = Commit.load(commitId);
+            System.out.println(commit);
+        }
+    }
+
+    /** Prints the IDs of all commits that have the given commit message. */
+    public static void find(String message) {
+        boolean found = false;
+        List<String> commitIds = plainFilenamesIn(Commit.COMMITS_DIR);
+        for (String commitId : commitIds) {
+            Commit commit = Commit.load(commitId);
+            if (message.equals(commit.getMessage())) {
+                found = true;
+                System.out.println(commit.getId());
+            }
+        }
+        if (!found) {
+            String msg = "Found no commit with that message.";
+            Main.exit(msg);
+        }
+    }
+
+    /** Displays the current branch, other branches, staged files for addition
+     *  or removal, and untracked files.
+     */
+    public static void status() {
+        System.out.println("=== Branches ===");
+        List<String> branches = plainFilenamesIn(Branch.BRANCHES_DIR);
+        Collections.sort(branches);
+        for (String branch : branches) {
+            if (branch.equals(HEAD.getBranch())) {
+                System.out.print("*");
+            }
+            System.out.println(branch);
+        }
+        System.out.println("=== Staged Files ===");
+        StagingArea stagingArea = StagingArea.load();
+        TreeMap<String, String> addition = stagingArea.getAddition();
+        for (String fileName : addition.keySet()) {
+            System.out.println(fileName);
+        }
+        System.out.println("=== Removed Files ===");
+        TreeSet<String> removal = stagingArea.getRemoval();
+        for (String fileName : removal) {
+            System.out.println(fileName);
+        }
+    }
+
     private static List<String> getUntrackedFiles(String commitId) {
         Commit commit = Commit.load(commitId);
-        HashMap<String, String> blob = commit.getBlob();
+        TreeMap<String, String> blob = commit.getBlob();
         StagingArea stagingArea = StagingArea.load();
-        HashMap<String, String> addition  = stagingArea.getAddition();
+        TreeMap<String, String> addition  = stagingArea.getAddition();
         List<String> CWDfiles = plainFilenamesIn(CWD);
         List<String> untrackedFiles = new ArrayList<>();
         for (String fileName : CWDfiles) {
@@ -218,7 +297,7 @@ public class Repository {
         StagingArea stagingArea = StagingArea.load();
         Commit commit = Commit.load(commitId);
         List<String> untrackedFiles = getUntrackedFiles(commitId);
-        HashMap<String, String> blob = commit.getBlob();
+        TreeMap<String, String> blob = commit.getBlob();
         Set<String> fileNames = blob.keySet();
         for (String fileName : fileNames) {
             if (untrackedFiles.contains(fileName)) {
@@ -245,5 +324,53 @@ public class Repository {
         }
         stagingArea.clear();
         stagingArea.save();
+    }
+
+    /** Creates a new branch with the given name, and points it at the current head commit. */
+    public static void branch(String name) {
+        List<String> branches = plainFilenamesIn(Branch.BRANCHES_DIR);
+        if (branches.contains(name)) {
+            String message = "A branch with that name already exists.";
+            Main.exit(message);
+        }
+        Branch.setId(name, Branch.getId(HEAD.getBranch()));
+    }
+
+    /** Deletes the branch with the given name. */
+    public static void rmBranch(String name) {
+        List<String> branches = plainFilenamesIn(Branch.BRANCHES_DIR);
+        String message;
+        if (!branches.contains(name)) {
+            message = "A branch with that name does not exist.";
+            Main.exit(message);
+        }
+        if (name.equals(HEAD.getBranch())) {
+            message = "Cannot remove the current branch.";
+            Main.exit(message);
+        }
+        File branch = join(Branch.BRANCHES_DIR, name);
+        restrictedDelete(branch);
+    }
+
+    public static void reset() {} {
+        reset(Branch.getId(HEAD.getBranch()));
+    }
+
+    /** Checks out all the files tracked by the given commit. Removes tracked
+     *  files that are not present in that commit. Moves the current branch's
+     *  head to that commit node.
+     */
+    public static void reset(String commitId) {
+        List<String> commitIds = plainFilenamesIn(Commit.COMMITS_DIR);
+        if (!commitIds.contains(commitId)) {
+            String message = "No commit with that id exists.";
+            Main.exit(message);
+        }
+        checkoutCommit(commitId);
+    }
+
+    /** Merges files from the given branch into the current branch. */
+    public static void merge(String branch) {
+        return;
     }
 }

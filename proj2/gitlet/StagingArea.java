@@ -3,27 +3,27 @@ package gitlet;
 import static gitlet.Utils.*;
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**  */
 public class StagingArea implements Serializable {
     private static final File STAGED_FILES = join(Repository.GITLET_DIR, "staging_area");
     // Maps the name of the file staged for addition to the blob ID.
-    private HashMap<String, String> addition;
+    private TreeMap<String, String> addition;
     // Files staged for removal.
-    private HashSet<String> removal;
+    private TreeSet<String> removal;
 
     public StagingArea() {
-        addition = new HashMap<>();
-        removal = new HashSet<>();
+        addition = new TreeMap<>();
+        removal = new TreeSet<>();
     }
 
-    public HashMap<String, String> getAddition() {
+    public TreeMap<String, String> getAddition() {
         return addition;
     }
 
-    public HashSet<String> getRemoval() {
+    public TreeSet<String> getRemoval() {
         return removal;
     }
 
