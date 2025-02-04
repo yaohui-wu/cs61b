@@ -233,8 +233,9 @@ public class Repository {
             byte[] contents = readContents(join(Blob.BLOBS_DIR, blobId));
             writeContents(join(CWD, fileName), (Object) contents);
         }
-        /** Deletes files tracked in the current branch that are not present
-         *  in the checked out branch.
+        /*
+         * Deletes files tracked in the current branch that are not present in
+         * the checked out branch.
          */
         Commit head = Commit.load(Branch.getId(HEAD.getBranch()));
         for (String fileName : head.getBlob().keySet()) {
