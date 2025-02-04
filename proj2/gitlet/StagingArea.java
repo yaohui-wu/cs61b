@@ -6,9 +6,12 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/**  */
 public class StagingArea implements Serializable {
     private static final File STAGED_FILES = join(Repository.GITLET_DIR, "staging_area");
+    // Maps the name of the file staged for addition to the blob ID.
     private HashMap<String, String> addition;
+    // Files staged for removal.
     private HashSet<String> removal;
 
     public StagingArea() {

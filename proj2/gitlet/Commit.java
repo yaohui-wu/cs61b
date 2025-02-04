@@ -1,6 +1,5 @@
 package gitlet;
 
-// TODO: any imports you need here
 import static gitlet.Utils.*;
 import java.io.File;
 import java.io.Serializable;
@@ -9,45 +8,39 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 
-/** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+/**
+ * Represents a gitlet commit object.
  *
  *  @author Yaohui Wu
  */
 public class Commit implements Serializable {
-    /**
-     * TODO: add instance variables here.
-     *
-     * List all instance variables of the Commit class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided one example for `message`.
-     */
-
     public static final File COMMITS_DIR = join(Repository.GITLET_DIR, "commits");
-    /** The message of this Commit. */
+    // Message of the commit.
     private String message;
-    // The date of the commit.
+    // Timestamp of the commit.
     private String timestamp;
+    // SHA-1 ID of the commit.
     private String id;
-    private String firstParent;
-    private String secondParent;
+    // SHA-1 ID of the first parent commit.
+    private String firstParentId;
+    // SHA-1 ID of the second parent commit.
+    private String secondParentId;
+    // Maps the file name to the blob ID.
     private HashMap<String, String> blob;
 
-    /* TODO: fill in the rest of this class. */
     public Commit() {
         message = "initial commit";
         timestamp = timestamp(Instant.EPOCH);
         id = hash();
-        firstParent = null;
+        firstParentId = null;
         blob = new HashMap<>();
     }
 
-    public Commit(String msg, String firstParentId) {
+    public Commit(String msg, String firstParent) {
         message = msg;
         timestamp = timestamp(Instant.now());
         id = hash();
-        firstParent = firstParentId;
+        firstParentId = firstParent;
         blob = new HashMap<>();
     }
 
@@ -67,8 +60,8 @@ public class Commit implements Serializable {
         return id;
     }
 
-    public String getFirstParent() {
-        return firstParent;
+    public String getFirstParentId() {
+        return firstParentId;
     }
     
     public HashMap<String, String> getBlob() {
@@ -84,8 +77,8 @@ public class Commit implements Serializable {
         writeObject(file, this);
     }
 
-    public static Commit load(String commitId) {
-        File file = join(COMMITS_DIR, commitId);
+    public static Commit load(String id) {
+        File file = join(COMMITS_DIR, id);
         if (!file.exists()) {
             return null;
         }
@@ -94,7 +87,10 @@ public class Commit implements Serializable {
 
     @Override
     public String toString() {
-        return "===\n" + "commit " + id + "\n" + "Date: " + timestamp + "\n"
-            + message + "\n";
+        String headerString = "===\n";
+        String idString = "commit " + id + "\n";
+        String timestampString = "Date: " + timestamp + "\n";
+        String messageString = message + "\n";
+        return headerString + idString + timestampString + messageString;
     }
 }
