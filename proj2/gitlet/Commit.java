@@ -48,8 +48,7 @@ public class Commit implements Serializable {
         DateTimeFormatter formatter
             = DateTimeFormatter.ofPattern("EEE MMM d HH:mm:ss yyyy Z")
             .withZone(ZoneId.systemDefault());
-        String timestamp = formatter.format(time);
-        return timestamp;
+        return formatter.format(time);
     }
 
     private String hash() {
