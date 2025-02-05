@@ -6,13 +6,13 @@ import java.io.Serializable;
 
 /** Blobs: the saved contents of files. */
 public class Blob implements Serializable {
-    public static final File BLOBS_DIR = join(Repository.GITLET_DIR, "blobs");
+    public static final File BLOBS = join(Repository.GITLET, "blobs");
 
     private byte[] contents;
     private final String id;
 
-    public Blob(byte[] blobContents) {
-        contents = blobContents;
+    public Blob(byte[] fileContents) {
+        contents = fileContents;
         id = hash();
     }
 
@@ -25,7 +25,7 @@ public class Blob implements Serializable {
     }
 
     public void save() {
-        File blobFile = join(BLOBS_DIR, id);
-        writeContents(blobFile, (Object) contents);
+        File file = join(BLOBS, id);
+        writeContents(file, (Object) contents);
     }
 }

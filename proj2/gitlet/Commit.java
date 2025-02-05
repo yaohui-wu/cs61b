@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -14,7 +15,7 @@ import java.util.TreeMap;
  *  @author Yaohui Wu
  */
 public class Commit implements Serializable {
-    public static final File COMMITS_DIR = join(Repository.GITLET_DIR, "commits");
+    public static final File COMMITS = join(Repository.GITLET, "commits");
     // Message of the commit.
     private String message;
     // Timestamp of the commit.
@@ -22,37 +23,40 @@ public class Commit implements Serializable {
     // SHA-1 ID of the commit.
     private String id;
     // SHA-1 ID of the first parent commit.
-    private String firstParentId;
+    private String firstParent;
     // SHA-1 ID of the second parent commit.
-    private String secondParentId;
+    private String secondParent;
     // Maps the file name to the blob ID.
-    private TreeMap<String, String> blob;
+    private Map<String, String> blob;
 
     public Commit() {
         message = "initial commit";
-        timestamp = setTimestamp(Instant.EPOCH);
+        timestamp = timestamp(Instant.EPOCH);
         id = hash();
-        firstParentId = null;
+        firstParent = null;
+        secondParent = null;
         blob = new TreeMap<>();
     }
 
-    public Commit(String msg, String firstParent) {
+    public Commit(String msg, String firstParentId) {
         message = msg;
-        timestamp = setTimestamp(Instant.now());
+        timestamp = timestamp(Instant.now());
         id = hash();
-        firstParentId = firstParent;
+        firstParent = firstParentId;
+        secondParent = null;
         blob = new TreeMap<>();
     }
 
-    private String setTimestamp(Instant time) {
+    private String timestamp(Instant time) {
         DateTimeFormatter formatter
             = DateTimeFormatter.ofPattern("EEE MMM d HH:mm:ss yyyy Z")
             .withZone(ZoneId.systemDefault());
-        return formatter.format(time);
+        String datetime = formatter.format(time);
+        return datetime;
     }
 
     private String hash() {
-        return Utils.sha1(Utils.serialize(this));
+        return sha1(serialize(this));
     }
 
     public String getMessage() {
@@ -63,25 +67,25 @@ public class Commit implements Serializable {
         return id;
     }
 
-    public String getFirstParentId() {
-        return firstParentId;
+    public String getfirstParent() {
+        return firstParent;
     }
     
-    public TreeMap<String, String> getBlob() {
+    public Map<String, String> getBlob() {
         return blob;
     }
 
-    public String getBlobId(String fileName) {
-        return blob.get(fileName);
+    public String getBlobId(String file) {
+        return blob.get(file);
     }
 
     public void save() {
-        File file = join(COMMITS_DIR, id);
+        File file = join(COMMITS, id);
         writeObject(file, this);
     }
 
     public static Commit load(String id) {
-        File file = join(COMMITS_DIR, id);
+        File file = join(COMMITS, id);
         if (!file.exists()) {
             return null;
         }

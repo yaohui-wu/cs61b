@@ -5,7 +5,7 @@ import java.io.File;
 
 /** The HEAD file stores the name of the currently checked out branch. */
 public class HEAD {
-    public static final File HEAD = join(Repository.GITLET_DIR, "HEAD");
+    public static final File HEAD = join(Repository.GITLET, "HEAD");
 
     public static void setBranch(String branch) {
         writeContents(HEAD, branch);

@@ -10,10 +10,10 @@ public class Main {
      */
     public static void main(String[] args) {
         int argsNum = args.length; // Number of input arguments.
-        String message; // Error message.
+        String error; // Error message.
         if (argsNum == 0) {
-            message = "Please enter a command.";
-            exit(message);
+            error = "Please enter a command.";
+            exit(error);
         }
         switch(args[0]) {
             case "init":
@@ -81,15 +81,15 @@ public class Main {
                 break;
             default:
                 // Input command does not exist.
-                message = "No command with that name exists.";
-                exit(message);
+                error = "No command with that name exists.";
+                exit(error);
         }
     }
 
     /** Prints an error message and exits the program. */
-    public static void exit(String message) {
+    public static void exit(String error) {
         // Prints the error message.
-        System.out.println(message);
+        System.out.println(error);
         // Exits the program with error code 0 immediately.
         System.exit(0);
     }
@@ -97,8 +97,8 @@ public class Main {
     /** Validates a command has the correct number of arguments. */
     private static void validateArgs(int num, int argsNum) {
         if (num != argsNum) {
-            String message = "Incorrect operands.";
-            exit(message);
+            String error = "Incorrect operands.";
+            exit(error);
         }
     }
 }
