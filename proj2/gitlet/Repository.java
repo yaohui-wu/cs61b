@@ -54,14 +54,18 @@ public class Repository {
     /** Returns the list of all commit IDs. */
     private static List<String> getIds() {
         List<String> ids = plainFilenamesIn(Commit.COMMITS);
-        Collections.sort(ids);
+        if (!ids.isEmpty()) {
+            Collections.sort(ids);
+        }
         return ids;
     }
 
     /** Returns all the branches of the repository. */
     private static List<String> getBranches() {
         List<String> branches = plainFilenamesIn(Branch.BRANCHES);
-        Collections.sort(branches);
+        if (!branches.isEmpty()) {
+            Collections.sort(branches);
+        }
         return branches;
     }
 
@@ -92,8 +96,7 @@ public class Repository {
             addition.put(fileName, blobId);
         }
         // File is no longer staged for removal if it was.
-        Set<String> removal = stage.getRemoval();
-        removal.remove(fileName);
+        stage.getRemoval().remove(fileName);
         blob.save();
         stage.save();
     }
@@ -113,7 +116,7 @@ public class Repository {
             Main.exit(error);
         }
         if (message.isEmpty()) {
-            error = "Please enter a commit error.";
+            error = "Please enter a commit message.";
             Main.exit(error);
         }
         Commit commit = new Commit(message, firstParentId);
@@ -194,7 +197,7 @@ public class Repository {
             }
         }
         if (!found) {
-            String error = "Found no commit with that error.";
+            String error = "Found no commit with that message.";
             Main.exit(error);
         }
     }
@@ -213,13 +216,13 @@ public class Repository {
         System.out.println();
         System.out.println("=== Staged Files ===");
         StagingArea stage = StagingArea.load();
-        for (String fileName : stage.getAddition().keySet()) {
-            System.out.println(fileName);
+        for (String file : stage.getAddition().keySet()) {
+            System.out.println(file);
         }
         System.out.println();
         System.out.println("=== Removed Files ===");
-        for (String fileName : stage.getRemoval()) {
-            System.out.println(fileName);
+        for (String file : stage.getRemoval()) {
+            System.out.println(file);
         }
         System.out.println();
         System.out.println("=== Modifications Not Staged For Commit ===");
@@ -344,8 +347,7 @@ public class Repository {
 
     /** Creates a new branch with the given name, and points it at the current head commit. */
     public static void branch(String name) {
-        List<String> branches = plainFilenamesIn(Branch.BRANCHES);
-        if (branches.contains(name)) {
+        if (getBranches().contains(name)) {
             String error = "A branch with that name already exists.";
             Main.exit(error);
         }
@@ -354,7 +356,7 @@ public class Repository {
 
     /** Deletes the branch with the given name. */
     public static void rmBranch(String name) {
-        List<String> branches = plainFilenamesIn(Branch.BRANCHES);
+        List<String> branches = getBranches();
         String error;
         if (!branches.contains(name)) {
             error = "A branch with that name does not exist.";
