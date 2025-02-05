@@ -9,9 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * Represents a gitlet commit object.
- *
+/** Represents a Gitlet commit object.
  *  @author Yaohui Wu
  */
 public class Commit implements Serializable {
@@ -51,8 +49,7 @@ public class Commit implements Serializable {
         DateTimeFormatter formatter
             = DateTimeFormatter.ofPattern("EEE MMM d HH:mm:ss yyyy Z")
             .withZone(ZoneId.systemDefault());
-        String datetime = formatter.format(time);
-        return datetime;
+        return formatter.format(time);
     }
 
     private String hash() {

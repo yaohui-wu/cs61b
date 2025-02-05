@@ -3,15 +3,12 @@ package gitlet;
 import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
 /** Represents a Gitlet repository.
- *
  *  @author Yaohui Wu
  */
 public class Repository {
@@ -59,6 +56,13 @@ public class Repository {
         List<String> ids = plainFilenamesIn(Commit.COMMITS);
         Collections.sort(ids);
         return ids;
+    }
+
+    /** Returns all the branches of the repository. */
+    private static List<String> getBranches() {
+        List<String> branches = plainFilenamesIn(Branch.BRANCHES);
+        Collections.sort(branches);
+        return branches;
     }
 
     /** Adds a copy of the file to the staging area. */
@@ -200,9 +204,7 @@ public class Repository {
      */
     public static void status() {
         System.out.println("=== Branches ===");
-        List<String> branches = plainFilenamesIn(Branch.BRANCHES);
-        Collections.sort(branches);
-        for (String branch : branches) {
+        for (String branch : getBranches()) {
             if (branch.equals(HEAD.getBranch())) {
                 System.out.print("*");
             }
@@ -211,14 +213,12 @@ public class Repository {
         System.out.println();
         System.out.println("=== Staged Files ===");
         StagingArea stage = StagingArea.load();
-        Map<String, String> addition = stage.getAddition();
-        for (String fileName : addition.keySet()) {
+        for (String fileName : stage.getAddition().keySet()) {
             System.out.println(fileName);
         }
         System.out.println();
         System.out.println("=== Removed Files ===");
-        Set<String> removal = stage.getRemoval();
-        for (String fileName : removal) {
+        for (String fileName : stage.getRemoval()) {
             System.out.println(fileName);
         }
         System.out.println();
