@@ -53,11 +53,7 @@ public class Repository {
 
     /** Returns the list of all commit IDs. */
     private static List<String> getIds() {
-        List<String> ids = plainFilenamesIn(Commit.COMMITS);
-        if (!ids.isEmpty()) {
-            Collections.sort(ids);
-        }
-        return ids;
+        return plainFilenamesIn(Commit.COMMITS);
     }
 
     /** Returns all the branches of the repository. */
@@ -228,6 +224,9 @@ public class Repository {
         System.out.println("=== Modifications Not Staged For Commit ===");
         System.out.println();
         System.out.println("=== Untracked Files ===");
+        for (String file : getUntrackedFiles()) {
+            System.out.println(file);
+        }
         System.out.println();
     }
 
@@ -299,7 +298,7 @@ public class Repository {
     private static void checkoutCommit(String id) {
         StagingArea stage = StagingArea.load();
         Commit commit = Commit.load(id);
-        List<String> untrackedFiles = getUntrackedFiles(getCurrentId());
+        List<String> untrackedFiles = getUntrackedFiles();
         Map<String, String> blob = commit.getBlob();
         Set<String> files = blob.keySet();
         if (!untrackedFiles.isEmpty()) {
@@ -325,18 +324,18 @@ public class Repository {
         stage.save();
     }
 
-    private static List<String> getUntrackedFiles(String id) {
-        Commit commit = Commit.load(id);
+    private static List<String> getUntrackedFiles() {
+        Commit commit = Commit.load(getCurrentId());
         Map<String, String> blob = commit.getBlob();
         StagingArea stage = StagingArea.load();
         Map<String, String> addition  = stage.getAddition();
         List<String> cwdFiles = plainFilenamesIn(CWD);
         List<String> untrackedFiles = new ArrayList<>();
-        for (String fileName : cwdFiles) {
-            boolean tracked = blob.containsKey(fileName);
-            boolean staged = addition.containsKey(fileName);
+        for (String file : cwdFiles) {
+            boolean tracked = blob.containsKey(file);
+            boolean staged = addition.containsKey(file);
             if (!tracked && !staged) {
-                untrackedFiles.add(fileName);
+                untrackedFiles.add(file);
             }
         }
         Collections.sort(untrackedFiles);
