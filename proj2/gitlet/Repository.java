@@ -231,24 +231,6 @@ public class Repository {
         System.out.println();
     }
 
-    private static List<String> getUntrackedFiles(String id) {
-        Commit commit = Commit.load(id);
-        Map<String, String> blob = commit.getBlob();
-        StagingArea stage = StagingArea.load();
-        Map<String, String> addition  = stage.getAddition();
-        List<String> cwdFiles = plainFilenamesIn(CWD);
-        List<String> untrackedFiles = new ArrayList<>();
-        for (String fileName : cwdFiles) {
-            boolean tracked = blob.containsKey(fileName);
-            boolean staged = addition.containsKey(fileName);
-            if (!tracked && !staged) {
-                untrackedFiles.add(fileName);
-            }
-        }
-        Collections.sort(untrackedFiles);
-        return untrackedFiles;
-    }
-
     public static void checkout(String[] args) {
         int argsNum = args.length;
         if (argsNum == 3 &&  args[1].equals("--")) {
@@ -317,15 +299,13 @@ public class Repository {
     private static void checkoutCommit(String id) {
         StagingArea stage = StagingArea.load();
         Commit commit = Commit.load(id);
-        List<String> untrackedFiles = getUntrackedFiles(id);
+        List<String> untrackedFiles = getUntrackedFiles(getCurrentId());
         Map<String, String> blob = commit.getBlob();
         Set<String> files = blob.keySet();
-        for (String file : files) {
-            if (untrackedFiles.contains(file)) {
-                String error = "There is an untracked file in the way; "
-                    + "delete it, or add and commit it first.";
-                Main.exit(error);
-            }
+        if (!untrackedFiles.isEmpty()) {
+            String error = "There is an untracked file in the way; "
+                + "delete it, or add and commit it first.";
+            Main.exit(error);
         }
         // Checks out all the files in the given commit.
         for (String file : files) {
@@ -345,29 +325,45 @@ public class Repository {
         stage.save();
     }
 
+    private static List<String> getUntrackedFiles(String id) {
+        Commit commit = Commit.load(id);
+        Map<String, String> blob = commit.getBlob();
+        StagingArea stage = StagingArea.load();
+        Map<String, String> addition  = stage.getAddition();
+        List<String> cwdFiles = plainFilenamesIn(CWD);
+        List<String> untrackedFiles = new ArrayList<>();
+        for (String fileName : cwdFiles) {
+            boolean tracked = blob.containsKey(fileName);
+            boolean staged = addition.containsKey(fileName);
+            if (!tracked && !staged) {
+                untrackedFiles.add(fileName);
+            }
+        }
+        Collections.sort(untrackedFiles);
+        return untrackedFiles;
+    }
+
     /** Creates a new branch with the given name, and points it at the current head commit. */
-    public static void branch(String name) {
-        if (getBranches().contains(name)) {
+    public static void branch(String branch) {
+        if (getBranches().contains(branch)) {
             String error = "A branch with that name already exists.";
             Main.exit(error);
         }
-        Branch.setId(name, getCurrentId());
+        Branch.setId(branch, getCurrentId());
     }
 
     /** Deletes the branch with the given name. */
-    public static void rmBranch(String name) {
-        List<String> branches = getBranches();
+    public static void rmBranch(String branch) {
         String error;
-        if (!branches.contains(name)) {
+        if (!getBranches().contains(branch)) {
             error = "A branch with that name does not exist.";
             Main.exit(error);
         }
-        if (name.equals(HEAD.getBranch())) {
+        if (branch.equals(HEAD.getBranch())) {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
-        File branch = join(Branch.BRANCHES, name);
-        restrictedDelete(branch);
+        restrictedDelete(join(BRANCH.BRANCHES, branch));
     }
 
     public static void reset() {

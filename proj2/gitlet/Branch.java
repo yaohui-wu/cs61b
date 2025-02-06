@@ -8,8 +8,7 @@ public class Branch {
     public static final File BRANCHES = join(Repository.GITLET, "branches");
     
     public static void setId(String branch, String id) {
-        File file = join(BRANCHES, branch);
-        writeContents(file, id);
+        writeContents(join(BRANCHES, branch), id);
     }
 
     public static String getId(String branch) {
