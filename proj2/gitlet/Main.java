@@ -15,12 +15,16 @@ public class Main {
             error = "Please enter a command.";
             exit(error);
         }
-        switch(args[0]) {
-            case "init":
-                // Handles the `init` command.
-                validateArgs(1, argsNum);
-                Repository.init();
-                break;
+        String command = args[0];
+        if (command.equals("init")) {
+            // Handles the `init` command.
+            validateArgs(1, argsNum);
+            Repository.init();
+            return;
+        } else {
+            validateGitlet();
+        }
+        switch(command) {
             case "add":
                 // Handles the `add [filename]` command.
                 validateArgs(2, argsNum);
@@ -98,6 +102,14 @@ public class Main {
     private static void validateArgs(int num, int argsNum) {
         if (num != argsNum) {
             String error = "Incorrect operands.";
+            exit(error);
+        }
+    }
+
+    /** Checks if the user is in an initialized Gitlet directory. */
+    private static void validateGitlet() {
+        if (!Repository.GITLET.exists()) {
+            String error = "Not in an initialized Gitlet directory.";
             exit(error);
         }
     }
