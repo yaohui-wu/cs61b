@@ -326,14 +326,11 @@ public class Repository {
 
     private static List<String> getUntrackedFiles() {
         Commit commit = Commit.load(getCurrentId());
-        Map<String, String> blob = commit.getBlob();
         StagingArea stage = StagingArea.load();
-        Map<String, String> addition  = stage.getAddition();
-        List<String> cwdFiles = plainFilenamesIn(CWD);
         List<String> untrackedFiles = new ArrayList<>();
-        for (String file : cwdFiles) {
-            boolean tracked = blob.containsKey(file);
-            boolean staged = addition.containsKey(file);
+        for (String file : plainFilenamesIn(CWD)) {
+            boolean tracked = commit.getBlob().containsKey(file);
+            boolean staged = stage.getAddition().containsKey(file);
             if (!tracked && !staged) {
                 untrackedFiles.add(file);
             }
@@ -354,7 +351,7 @@ public class Repository {
     /** Deletes the branch with the given name. */
     public static void rmBranch(String branch) {
         String error;
-        if (!getBranches().contains(branch)) {
+        if (!join(Branch.BRANCHES, branch).exists()) {
             error = "A branch with that name does not exist.";
             Main.exit(error);
         }
@@ -362,7 +359,7 @@ public class Repository {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
-        restrictedDelete(join(Branch.BRANCHES, branch));
+        restrictedDelete(branch);
     }
 
     public static void reset() {
