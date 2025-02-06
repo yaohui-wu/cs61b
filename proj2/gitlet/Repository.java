@@ -363,7 +363,7 @@ public class Repository {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
-        restrictedDelete(join(BRANCH.BRANCHES, branch));
+        restrictedDelete(join(Branch.BRANCHES, branch));
     }
 
     public static void reset() {
