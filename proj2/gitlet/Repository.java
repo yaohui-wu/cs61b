@@ -42,13 +42,13 @@ public class Repository {
     }
 
     /** Returns the ID of the current commit in the current branch. */
-    private static String getCurrentId() {
+    private static String getId() {
         return Branch.getId(HEAD.getBranch());
     }
 
     /** Returns the current commit in the current branch. */
-    private static Commit getCurrent() {
-        return Commit.load(getCurrentId());
+    private static Commit getCommit() {
+        return Commit.load(getId());
     }
 
     /** Returns the list of all commit IDs. */
@@ -58,11 +58,22 @@ public class Repository {
 
     /** Returns all the branches of the repository. */
     private static List<String> getBranches() {
-        List<String> branches = plainFilenamesIn(Branch.BRANCHES);
-        if (!branches.isEmpty()) {
-            Collections.sort(branches);
+        return plainFilenamesIn(Branch.BRANCHES);
+    }
+
+    private static List<String> getUntrackedFiles() {
+        Commit commit = Commit.load(getId());
+        StagingArea stage = StagingArea.load();
+        List<String> untrackedFiles = new ArrayList<>();
+        for (String file : plainFilenamesIn(CWD)) {
+            boolean tracked = commit.getBlob().containsKey(file);
+            boolean staged = stage.getAddition().containsKey(file);
+            if (!tracked && !staged) {
+                untrackedFiles.add(file);
+            }
         }
-        return branches;
+        Collections.sort(untrackedFiles);
+        return untrackedFiles;
     }
 
     /** Adds a copy of the file to the staging area. */
@@ -74,7 +85,7 @@ public class Repository {
         }
         Blob blob = new Blob(readContents(file));
         String blobId = blob.getId();
-        Commit current = getCurrent();
+        Commit current = getCommit();
         StagingArea stage = StagingArea.load();
         Map<String, String> addition = stage.getAddition();
         /*
@@ -101,7 +112,7 @@ public class Repository {
      *  files staged for addition and removal.
      */
     public static void commit(String message) {
-        commit(message, getCurrentId());
+        commit(message, getId());
     }
     
     private static void commit(String message, String firstParentId) {
@@ -140,7 +151,7 @@ public class Repository {
      *  file from the working directory.
      */
     public static void rm(String file) {
-        Commit current = getCurrent();
+        Commit current = getCommit();
         StagingArea stage = StagingArea.load();
         Map<String, String> addition = stage.getAddition();
         boolean tracked = current.getBlob().containsKey(file);
@@ -155,8 +166,7 @@ public class Repository {
         }
         if (tracked) {
             // Stages the file for removal and removes it.
-            Set<String> removal = stage.getRemoval();
-            removal.add(file);
+            stage.getRemoval().add(file);
             restrictedDelete(file);
         }
         stage.save();
@@ -166,7 +176,7 @@ public class Repository {
      *  until the initial commit following the first parent.
      */
     public static void log() {
-        String id = getCurrentId();
+        String id = getId();
         while (id != null) {
             Commit commit = Commit.load(id);
             System.out.println(commit);
@@ -234,7 +244,7 @@ public class Repository {
         int argsNum = args.length;
         if (argsNum == 3 &&  args[1].equals("--")) {
             // Handles the `checkout -- [file name]` command.
-            checkoutFile(getCurrentId(), args[2]);
+            checkoutFile(getId(), args[2]);
             return;
         } else if (argsNum == 4 && args[2].equals("--")) {
             // Handles the `checkout [commit id] -- [file name]` command.
@@ -290,22 +300,20 @@ public class Repository {
             error = "No need to checkout the current branch.";
             Main.exit(error);
         }
-        String id = Branch.getId(branch);
-        checkoutCommit(id);
+        checkoutCommit(Branch.getId(branch));
         HEAD.setBranch(branch);
     }
 
     private static void checkoutCommit(String id) {
-        StagingArea stage = StagingArea.load();
-        Commit commit = Commit.load(id);
-        List<String> untrackedFiles = getUntrackedFiles();
-        Map<String, String> blob = commit.getBlob();
-        Set<String> files = blob.keySet();
-        if (!untrackedFiles.isEmpty()) {
+        if (!getUntrackedFiles().isEmpty()) {
             String error = "There is an untracked file in the way; "
                 + "delete it, or add and commit it first.";
             Main.exit(error);
         }
+        StagingArea stage = StagingArea.load();
+        Commit commit = Commit.load(id);
+        Map<String, String> blob = commit.getBlob();
+        Set<String> files = blob.keySet();
         // Checks out all the files in the given commit.
         for (String file : files) {
             byte[] contents = readContents(join(Blob.BLOBS, blob.get(file)));
@@ -315,7 +323,7 @@ public class Repository {
          * Deletes files tracked in the current branch that are not present in
          * the checked out branch.
          */
-        for (String file : getCurrent().getBlob().keySet()) {
+        for (String file : getCommit().getBlob().keySet()) {
             if (!files.contains(file)) {
                 restrictedDelete(join(CWD, file));
             }
@@ -324,34 +332,20 @@ public class Repository {
         stage.save();
     }
 
-    private static List<String> getUntrackedFiles() {
-        Commit commit = Commit.load(getCurrentId());
-        StagingArea stage = StagingArea.load();
-        List<String> untrackedFiles = new ArrayList<>();
-        for (String file : plainFilenamesIn(CWD)) {
-            boolean tracked = commit.getBlob().containsKey(file);
-            boolean staged = stage.getAddition().containsKey(file);
-            if (!tracked && !staged) {
-                untrackedFiles.add(file);
-            }
-        }
-        Collections.sort(untrackedFiles);
-        return untrackedFiles;
-    }
-
     /** Creates a new branch with the given name, and points it at the current head commit. */
     public static void branch(String branch) {
         if (getBranches().contains(branch)) {
             String error = "A branch with that name already exists.";
             Main.exit(error);
         }
-        Branch.setId(branch, getCurrentId());
+        Branch.setId(branch, getId());
     }
 
     /** Deletes the branch with the given name. */
     public static void rmBranch(String branch) {
+        File branchFile = join(Branch.BRANCHES, branch);
         String error;
-        if (!join(Branch.BRANCHES, branch).exists()) {
+        if (!branchFile.exists()) {
             error = "A branch with that name does not exist.";
             Main.exit(error);
         }
@@ -359,11 +353,11 @@ public class Repository {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
-        restrictedDelete(branch);
+        restrictedDelete(branchFile);
     }
 
     public static void reset() {
-        reset(getCurrentId());
+        reset(getId());
     }
 
     /** Checks out all the files tracked by the given commit. Removes tracked
@@ -376,6 +370,7 @@ public class Repository {
             Main.exit(error);
         }
         checkoutCommit(id);
+        Branch.setId(HEAD.getBranch(), id);
     }
 
     /** Merges files from the given branch into the current branch. */

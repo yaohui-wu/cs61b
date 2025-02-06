@@ -77,8 +77,7 @@ public class Commit implements Serializable {
     }
 
     public void save() {
-        File file = join(COMMITS, id);
-        writeObject(file, this);
+        writeObject(join(COMMITS, id), this);
     }
 
     public static Commit load(String id) {

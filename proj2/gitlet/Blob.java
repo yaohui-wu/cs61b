@@ -25,7 +25,6 @@ public class Blob implements Serializable {
     }
 
     public void save() {
-        File file = join(BLOBS, id);
-        writeContents(file, (Object) contents);
+        writeContents(join(BLOBS, id), (Object) contents);
     }
 }
