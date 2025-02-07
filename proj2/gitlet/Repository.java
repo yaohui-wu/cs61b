@@ -293,20 +293,20 @@ public class Repository {
      *  version of the file that's already there if there is one. The new
      *  version of the file is not staged.
      */
-    private static void checkoutFile(String id, String fileName) {
+    private static void checkoutFile(String id, String file) {
         Commit commit = getCommit(id);
         String error;
         if (commit == null) {
             error = "No commit with that id exists.";
             Main.exit(error);
         }
-        String blobId = commit.getBlobId(fileName);
+        String blobId = commit.getBlobId(file);
         if (blobId == null) {
             error = "File does not exist in that commit.";
             Main.exit(error);
         }
         byte[] contents = readContents(join(Blob.BLOBS, blobId));
-        writeContents(join(CWD, fileName), (Object) contents);
+        writeContents(join(CWD, file), (Object) contents);
     }
 
     /** Takes all files in the commit at the head of the given branch, and
@@ -333,14 +333,20 @@ public class Repository {
     }
 
     private static void checkoutCommit(String id) {
-        if (!getUntrackedFiles().isEmpty()) {
-            String error = "There is an untracked file in the way; "
-                + "delete it, or add and commit it first.";
-            Main.exit(error);
-        }
         StagingArea stage = StagingArea.load();
         Map<String, String> blobs = getCommit(id).getBlobs();
         Set<String> files = blobs.keySet();
+        for (String file : getUntrackedFiles()) {
+            if (files.contains(file)) {
+                /*
+                * A working file is untracked in the current branch and would be
+                * overwritten.
+                */
+                String error = "There is an untracked file in the way; "
+                    + "delete it, or add and commit it first.";
+                Main.exit(error);
+            }
+        }
         // Checks out all the files in the given commit.
         for (String file : files) {
             byte[] contents = readContents(join(Blob.BLOBS, blobs.get(file)));
@@ -361,7 +367,7 @@ public class Repository {
 
     /** Creates a new branch with the given name, and points it at the current head commit. */
     public static void branch(String branch) {
-        if (getBranches().contains(branch)) {
+        if (join(Branch.BRANCHES, branch).exists()) {
             String error = "A branch with that name already exists.";
             Main.exit(error);
         }
@@ -380,7 +386,7 @@ public class Repository {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
-        restrictedDelete(branchFile);
+        branchFile.delete();
     }
 
     public static void reset() {
