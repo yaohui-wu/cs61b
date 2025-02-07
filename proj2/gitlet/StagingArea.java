@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class StagingArea implements Serializable {
-    private static final File STAGE = join(Repository.GITLET, "staging_area");
+    private static final File STAGE = join(Repository.GITLET, "stage");
     // Maps the name of the file staged for addition to the blob ID.
     private Map<String, String> addition;
     // Files staged for removal.

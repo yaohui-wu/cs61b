@@ -25,24 +25,24 @@ public class Commit implements Serializable {
     // SHA-1 ID of the second parent commit.
     private String secondParent;
     // Maps the file name to the blob ID.
-    private Map<String, String> blob;
+    private Map<String, String> blobs;
 
     public Commit() {
         message = "initial commit";
         timestamp = timestamp(Instant.EPOCH);
-        id = hash();
         firstParent = null;
         secondParent = null;
-        blob = new TreeMap<>();
+        blobs = new TreeMap<>();
+        id = hash();
     }
 
     public Commit(String msg, String firstParentId) {
+        this();
         message = msg;
         timestamp = timestamp(Instant.now());
-        id = hash();
         firstParent = firstParentId;
-        secondParent = null;
-        blob = new TreeMap<>();
+        blobs = Commit.load(firstParentId).getBlobs();
+        id = hash();
     }
 
     private String timestamp(Instant time) {
@@ -68,12 +68,12 @@ public class Commit implements Serializable {
         return firstParent;
     }
     
-    public Map<String, String> getBlob() {
-        return blob;
+    public Map<String, String> getBlobs() {
+        return blobs;
     }
 
     public String getBlobId(String file) {
-        return blob.get(file);
+        return blobs.get(file);
     }
 
     public void save() {

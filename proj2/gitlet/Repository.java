@@ -48,7 +48,12 @@ public class Repository {
 
     /** Returns the current commit in the current branch. */
     private static Commit getCommit() {
-        return Commit.load(getId());
+        return getCommit(getId());
+    }
+
+    /** Returns the commit with the given ID. */
+    private static Commit getCommit(String id) {
+        return Commit.load(id);
     }
 
     /** Returns the list of all commit IDs. */
@@ -61,15 +66,23 @@ public class Repository {
         return plainFilenamesIn(Branch.BRANCHES);
     }
 
+    /** Returns true if the file is tracked. */
+    private static boolean isTracked(String file) {
+        return getCommit().getBlobs().containsKey(file);
+    }
+
+    /** Returns true if the file is staged for addition. */
+    private static boolean isStaged(String file) {
+        return StagingArea.load().getAddition().containsKey(file);
+    }
+
     /** Returns a list of all the untracked files.  */
     private static List<String> getUntrackedFiles() {
-        Commit commit = Commit.load(getId());
+        Commit commit = getCommit();
         StagingArea stage = StagingArea.load();
         List<String> untrackedFiles = new ArrayList<>();
         for (String file : plainFilenamesIn(CWD)) {
-            boolean tracked = commit.getBlob().containsKey(file);
-            boolean staged = stage.getAddition().containsKey(file);
-            if (!tracked && !staged) {
+            if (!isTracked(file) && !isStaged(file)) {
                 untrackedFiles.add(file);
             }
         }
@@ -116,7 +129,7 @@ public class Repository {
         commit(message, getId());
     }
     
-    private static void commit(String message, String firstParentId) {
+    private static void commit(String message, String firstParent) {
         StagingArea stage = StagingArea.load();
         String error;
         if (stage.isEmpty()) {
@@ -127,17 +140,16 @@ public class Repository {
             error = "Please enter a commit message.";
             Main.exit(error);
         }
-        Commit commit = new Commit(message, firstParentId);
-        Map<String, String> blob = commit.getBlob();
+        Commit commit = new Commit(message, firstParent);
+        Map<String, String> blobs = commit.getBlobs();
         Map<String, String> addition = stage.getAddition();
         // Updates the files staged for addition.
         for (Map.Entry<String, String> entry : addition.entrySet()) {
-            blob.put(entry.getKey(), entry.getValue());
+            blobs.put(entry.getKey(), entry.getValue());
         }
         // Updates the files staged for removal.
-        Set<String> removal = stage.getRemoval();
-        for (String file : removal) {
-            blob.remove(file);
+        for (String file : stage.getRemoval()) {
+            blobs.remove(file);
         }
         // The new commit becomes the current commit.
         Branch.setId(HEAD.getBranch(), commit.getId());
@@ -155,8 +167,8 @@ public class Repository {
         Commit current = getCommit();
         StagingArea stage = StagingArea.load();
         Map<String, String> addition = stage.getAddition();
-        boolean tracked = current.getBlob().containsKey(file);
-        boolean staged = addition.containsKey(file);
+        boolean tracked = isTracked(file);
+        boolean staged = isStaged(file);
         if (!tracked && !staged) {
             String error = "No reason to remove the file.";
             Main.exit(error);    
@@ -179,7 +191,7 @@ public class Repository {
     public static void log() {
         String id = getId();
         while (id != null) {
-            Commit commit = Commit.load(id);
+            Commit commit = getCommit(id);
             System.out.println(commit);
             id = commit.getfirstParent();
         }
@@ -188,7 +200,7 @@ public class Repository {
     /** Displays information about all commits. */
     public static void globalLog() {
         for (String id : getIds()) {
-            Commit commit = Commit.load(id);
+            Commit commit = getCommit(id);
             System.out.println(commit);
         }
     }
@@ -197,7 +209,7 @@ public class Repository {
     public static void find(String message) {
         boolean found = false;
         for (String id : getIds()) {
-            Commit commit = Commit.load(id);
+            Commit commit = getCommit(id);
             if (message.equals(commit.getMessage())) {
                 found = true;
                 System.out.println(commit.getId());
@@ -213,6 +225,15 @@ public class Repository {
      *  or removal, and untracked files.
      */
     public static void status() {
+        printBranches();
+        printStage();
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        System.out.println();
+        printUntrackedFiles();
+    }
+
+    /** Displays the branches of the repository. */
+    private static void printBranches() {
         System.out.println("=== Branches ===");
         for (String branch : getBranches()) {
             if (branch.equals(HEAD.getBranch())) {
@@ -221,6 +242,10 @@ public class Repository {
             System.out.println(branch);
         }
         System.out.println();
+    }
+
+    /** Displays the staged files for addition and removal. */
+    private static void printStage() {
         System.out.println("=== Staged Files ===");
         StagingArea stage = StagingArea.load();
         for (String file : stage.getAddition().keySet()) {
@@ -232,8 +257,10 @@ public class Repository {
             System.out.println(file);
         }
         System.out.println();
-        System.out.println("=== Modifications Not Staged For Commit ===");
-        System.out.println();
+    }
+
+    /** Displays the untracked files. */
+    private static void printUntrackedFiles() {
         System.out.println("=== Untracked Files ===");
         for (String file : getUntrackedFiles()) {
             System.out.println(file);
@@ -267,7 +294,7 @@ public class Repository {
      *  version of the file is not staged.
      */
     private static void checkoutFile(String id, String fileName) {
-        Commit commit = Commit.load(id);
+        Commit commit = getCommit(id);
         String error;
         if (commit == null) {
             error = "No commit with that id exists.";
@@ -312,19 +339,18 @@ public class Repository {
             Main.exit(error);
         }
         StagingArea stage = StagingArea.load();
-        Commit commit = Commit.load(id);
-        Map<String, String> blob = commit.getBlob();
-        Set<String> files = blob.keySet();
+        Map<String, String> blobs = getCommit(id).getBlobs();
+        Set<String> files = blobs.keySet();
         // Checks out all the files in the given commit.
         for (String file : files) {
-            byte[] contents = readContents(join(Blob.BLOBS, blob.get(file)));
+            byte[] contents = readContents(join(Blob.BLOBS, blobs.get(file)));
             writeContents(join(CWD, file), (Object) contents);
         }
         /*
          * Deletes files tracked in the current branch that are not present in
          * the checked out branch.
          */
-        for (String file : getCommit().getBlob().keySet()) {
+        for (String file : getCommit().getBlobs().keySet()) {
             if (!files.contains(file)) {
                 restrictedDelete(join(CWD, file));
             }
