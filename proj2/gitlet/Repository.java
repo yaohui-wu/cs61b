@@ -56,11 +56,12 @@ public class Repository {
         return plainFilenamesIn(Commit.COMMITS);
     }
 
-    /** Returns all the branches of the repository. */
+    /** Returns a list of all the branches of the repository. */
     private static List<String> getBranches() {
         return plainFilenamesIn(Branch.BRANCHES);
     }
 
+    /** Returns a list of all the untracked files.  */
     private static List<String> getUntrackedFiles() {
         Commit commit = Commit.load(getId());
         StagingArea stage = StagingArea.load();
