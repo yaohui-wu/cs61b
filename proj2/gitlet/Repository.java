@@ -267,7 +267,8 @@ public class Repository {
     private static void printModifiedFiles() {
         System.out.println("=== Modifications Not Staged For Commit ===");
         StagingArea stage = StagingArea.load();
-        for (String file : getCommit().getBlobs().keySet()) {
+        Map<String, String> blobs = getCommit().getBlobs();
+        for (String file : blobs.keySet()) {
             File currentFile = join(CWD, file);
             boolean modified = false;
             boolean deleted = false;
@@ -394,7 +395,9 @@ public class Repository {
         Set<String> fileNames = blobs.keySet();
         for (String fileName : fileNames) {
             File file = join(CWD, fileName);
-            if (file.exists() && !isStaged(file) && !isTracked(file)) {
+            boolean staged = isStaged(fileName);
+            boolean tracked = isTracked(fileName);
+            if (file.exists() && !staged && !tracked) {
                 /*
                  * A working file is untracked in the current branch and would
                  * be overwritten.
