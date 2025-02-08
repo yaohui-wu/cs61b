@@ -56,7 +56,7 @@ public class Repository {
         return Commit.load(id);
     }
 
-    /** Returns the list of all commit IDs. */
+    /** Returns a list of all commit IDs. */
     private static List<String> getIds() {
         return plainFilenamesIn(Commit.COMMITS);
     }
@@ -76,17 +76,14 @@ public class Repository {
         return StagingArea.load().getAddition().containsKey(file);
     }
 
-    /** Returns a list of all the untracked files.  */
+    /** Returns a list of all the untracked files. */
     private static List<String> getUntrackedFiles() {
-        Commit commit = getCommit();
-        StagingArea stage = StagingArea.load();
         List<String> untrackedFiles = new ArrayList<>();
         for (String file : plainFilenamesIn(CWD)) {
             if (!isTracked(file) && !isStaged(file)) {
                 untrackedFiles.add(file);
             }
         }
-        Collections.sort(untrackedFiles);
         return untrackedFiles;
     }
 
@@ -227,8 +224,7 @@ public class Repository {
     public static void status() {
         printBranches();
         printStage();
-        System.out.println("=== Modifications Not Staged For Commit ===");
-        System.out.println();
+        printModifiedFiles();
         printUntrackedFiles();
     }
 
@@ -255,6 +251,43 @@ public class Repository {
         System.out.println("=== Removed Files ===");
         for (String file : stage.getRemoval()) {
             System.out.println(file);
+        }
+        System.out.println();
+    }
+
+    /** Displays the modified files not staged for commit. */
+    private static void printModifiedFiles() {
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        Commit current = getCommit();
+        Map<String, String> blobs = current.getBlobs();
+        Set<String> files = blobs.keySet();
+        StagingArea stage = StagingArea.load();
+        for (String file : files) {
+            File currentFile = join(CWD, file);
+            boolean modified = false;
+            boolean deleted = false;
+            if (currentFile.exists()) {
+                Blob blob = new Blob(readContents(currentFile));
+                String blobId = blob.getId();
+                if (isTracked(file)) {
+                    modified = !blobId.equals(blobs.get(file));
+                }
+                if (isStaged(file)) {
+                    File stagedFile = join(Blob.BLOBS, stage.getAddition().get(file));
+                    Blob stagedBlob = new Blob(readContents(stagedFile));
+                    modified = !blobId.equals(stagedBlob.getId());
+                }
+            } else {
+                deleted = isTracked(file) && !stage.getRemoval().contains(file);
+                if (isStaged(file)) {
+                    deleted = true;
+                }
+            }
+            if (modified) {
+                System.out.println(file + " (modified)");
+            } else if (deleted) {
+                System.out.println(file + " (deleted)");
+            }
         }
         System.out.println();
     }
@@ -336,8 +369,8 @@ public class Repository {
         StagingArea stage = StagingArea.load();
         Map<String, String> blobs = getCommit(id).getBlobs();
         Set<String> files = blobs.keySet();
-        for (String file : getUntrackedFiles()) {
-            if (files.contains(file)) {
+        for (String file : files) {
+            if (!isStaged(file) && !isTracked(file)) {
                 /*
                 * A working file is untracked in the current branch and would be
                 * overwritten.
