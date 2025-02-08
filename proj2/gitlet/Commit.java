@@ -9,8 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Represents a Gitlet commit object.
- *  @author Yaohui Wu
+/**
+ * Represents a Gitlet commit object.
+ * @author Yaohui Wu
  */
 public class Commit implements Serializable {
     public static final File COMMITS = join(Repository.GITLET, "commits");

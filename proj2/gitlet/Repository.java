@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 
-/** Represents a Gitlet repository.
- *  @author Yaohui Wu
+/**
+ * Represents a Gitlet repository.
+ * @author Yaohui Wu
  */
 public class Repository {
     // Current working directory.
@@ -18,7 +18,9 @@ public class Repository {
     public static final File GITLET = join(CWD, ".gitlet");
     private static final String DEFAULT_BRANCH = "master";
 
-    /** Creates a new Gitlet version-control system in the current directory. */
+    /**
+     * Creates a new Gitlet version-control system in the current directory.
+     */
     public static void init() {
         validateRepo();
         GITLET.mkdir();
@@ -76,7 +78,10 @@ public class Repository {
         return StagingArea.load().getAddition().containsKey(file);
     }
 
-    /** Returns a list of all the untracked files. */
+    /**
+     * Returns a list of all the files present in the working directory but
+     * neither staged for addition nor tracked.
+     */
     private static List<String> getUntrackedFiles() {
         List<String> untrackedFiles = new ArrayList<>();
         for (String file : plainFilenamesIn(CWD)) {
@@ -96,7 +101,6 @@ public class Repository {
         }
         Blob blob = new Blob(readContents(file));
         String blobId = blob.getId();
-        Commit current = getCommit();
         StagingArea stage = StagingArea.load();
         Map<String, String> addition = stage.getAddition();
         /*
@@ -104,7 +108,7 @@ public class Repository {
          * version in the current commit, do not stage it to be added, and
          * remove it from the staging area if it is already there.
          */
-        if (blobId.equals(current.getBlobId(fileName))) {
+        if (blobId.equals(getCommit().getBlobId(fileName))) {
             addition.remove(fileName);
         } else {
             /*
@@ -119,8 +123,9 @@ public class Repository {
         stage.save();
     }
 
-    /** Creates a new commit with the given log message. Updates and saves
-     *  files staged for addition and removal.
+    /** 
+     * Creates a new commit with the given log message. Updates and saves
+     * files staged for addition and removal.
      */
     public static void commit(String message) {
         commit(message, getId());
@@ -156,9 +161,10 @@ public class Repository {
         commit.save();
     }
 
-    /** Unstages the file if it is currently staged for addition. If the file
-     *  is tracked in the current commit, stages it for removal and removes the
-     *  file from the working directory.
+    /** 
+     * Unstages the file if it is currently staged for addition. If the file
+     * is tracked in the current commit, stages it for removal and removes the
+     * file from the working directory.
      */
     public static void rm(String file) {
         Commit current = getCommit();
@@ -182,8 +188,9 @@ public class Repository {
         stage.save();
     }
 
-    /** Displays information about each commit in reverse chronological order
-     *  until the initial commit following the first parent.
+    /**
+     * Displays information about each commit in reverse chronological order
+     * until the initial commit following the first parent.
      */
     public static void log() {
         String id = getId();
@@ -218,8 +225,9 @@ public class Repository {
         }
     }
 
-    /** Displays the current branch, other branches, staged files for addition
-     *  or removal, and untracked files.
+    /**
+     * Displays the current branch, other branches, staged files for addition
+     * or removal, and untracked files.
      */
     public static void status() {
         printBranches();
@@ -258,28 +266,41 @@ public class Repository {
     /** Displays the modified files not staged for commit. */
     private static void printModifiedFiles() {
         System.out.println("=== Modifications Not Staged For Commit ===");
-        Commit current = getCommit();
-        Map<String, String> blobs = current.getBlobs();
-        Set<String> files = blobs.keySet();
         StagingArea stage = StagingArea.load();
-        for (String file : files) {
+        for (String file : getCommit().getBlobs().keySet()) {
             File currentFile = join(CWD, file);
             boolean modified = false;
             boolean deleted = false;
+            boolean tracked = isTracked(file);
+            boolean staged = isStaged(file);
             if (currentFile.exists()) {
                 Blob blob = new Blob(readContents(currentFile));
                 String blobId = blob.getId();
-                if (isTracked(file)) {
+                /*
+                 * Tracked in the current commit, changed in the working
+                 * directory, but not staged.
+                 */
+                if (tracked) {
                     modified = !blobId.equals(blobs.get(file));
                 }
-                if (isStaged(file)) {
-                    File stagedFile = join(Blob.BLOBS, stage.getAddition().get(file));
+                /*
+                 * Staged for addition, but with different contents than in
+                 * the working directory.
+                 */
+                if (staged) {
+                    Map<String, String> addition = stage.getAddition();
+                    File stagedFile = join(Blob.BLOBS, addition.get(file));
                     Blob stagedBlob = new Blob(readContents(stagedFile));
                     modified = !blobId.equals(stagedBlob.getId());
                 }
             } else {
-                deleted = isTracked(file) && !stage.getRemoval().contains(file);
-                if (isStaged(file)) {
+                /*
+                 * Not staged for removal, but tracked in the current commit
+                 * and deleted from the working directory.
+                 */
+                deleted = tracked && !stage.getRemoval().contains(file);
+                // Staged for addition, but deleted in the working directory.
+                if (staged) {
                     deleted = true;
                 }
             }
@@ -321,10 +342,11 @@ public class Repository {
         }
     }
 
-    /** Takes the version of the file as it exists in the commit with the
-     *  given ID, and puts it in the working directory, overwriting the
-     *  version of the file that's already there if there is one. The new
-     *  version of the file is not staged.
+    /** 
+     * Takes the version of the file as it exists in the commit with the given
+     * ID, and puts it in the working directory, overwriting the version of
+     * the file that's already there if there is one. The new version of the
+     * file is not staged.
      */
     private static void checkoutFile(String id, String file) {
         Commit commit = getCommit(id);
@@ -342,13 +364,14 @@ public class Repository {
         writeContents(join(CWD, file), (Object) contents);
     }
 
-    /** Takes all files in the commit at the head of the given branch, and
-     *  puts them in the working directory, overwriting the versions of the
-     *  files that are already there if they exist. Also, at the end of this
-     *  command, the given branch will now be considered the current branch
-     *  (HEAD). Any files that are tracked in the current branch but are not
-     *  present in the checked out branch are deleted. The staging area is
-     *  cleared, unless the checked out branch is the current branch.
+    /** 
+     * Takes all files in the commit at the head of the given branch, and puts
+     * them in the working directory, overwriting the versions of the files
+     * that are already there if they exist. Also, at the end of this command,
+     * the given branch will now be considered the current branch (HEAD). Any
+     * files that are tracked in the current branch but are not present in the
+     * checked out branch are deleted. The staging area is cleared, unless the
+     * checked out branch is the current branch.
      */
     private static void checkoutBranch(String branch) {
         File branchFile = join(Branch.BRANCHES, branch);
@@ -368,37 +391,42 @@ public class Repository {
     private static void checkoutCommit(String id) {
         StagingArea stage = StagingArea.load();
         Map<String, String> blobs = getCommit(id).getBlobs();
-        Set<String> files = blobs.keySet();
-        for (String file : files) {
-            if (!isStaged(file) && !isTracked(file)) {
+        Set<String> fileNames = blobs.keySet();
+        for (String fileName : fileNames) {
+            File file = join(CWD, fileName);
+            if (file.exists() && !isStaged(file) && !isTracked(file)) {
                 /*
-                * A working file is untracked in the current branch and would be
-                * overwritten.
-                */
+                 * A working file is untracked in the current branch and would
+                 * be overwritten.
+                 */
                 String error = "There is an untracked file in the way; "
                     + "delete it, or add and commit it first.";
                 Main.exit(error);
             }
         }
         // Checks out all the files in the given commit.
-        for (String file : files) {
-            byte[] contents = readContents(join(Blob.BLOBS, blobs.get(file)));
-            writeContents(join(CWD, file), (Object) contents);
+        for (String fileName : fileNames) {
+            File file = join(CWD, fileName);
+            byte[] contents = readContents(join(Blob.BLOBS, blobs.get(fileName)));
+            writeContents(file, (Object) contents);
         }
         /*
          * Deletes files tracked in the current branch that are not present in
          * the checked out branch.
          */
-        for (String file : getCommit().getBlobs().keySet()) {
-            if (!files.contains(file)) {
-                restrictedDelete(join(CWD, file));
+        for (String fileName : getCommit().getBlobs().keySet()) {
+            if (!fileNames.contains(fileName)) {
+                restrictedDelete(join(CWD, fileName));
             }
         }
         stage.clear();
         stage.save();
     }
 
-    /** Creates a new branch with the given name, and points it at the current head commit. */
+    /**
+     * Creates a new branch with the given name, and points it at the current
+     * head commit.
+     */
     public static void branch(String branch) {
         if (join(Branch.BRANCHES, branch).exists()) {
             String error = "A branch with that name already exists.";
@@ -426,9 +454,10 @@ public class Repository {
         reset(getId());
     }
 
-    /** Checks out all the files tracked by the given commit. Removes tracked
-     *  files that are not present in that commit. Moves the current branch's
-     *  head to that commit node.
+    /**
+     * Checks out all the files tracked by the given commit. Removes tracked
+     * files that are not present in that commit. Moves the current branch's
+     * head to that commit node.
      */
     public static void reset(String id) {
         if (!getIds().contains(id)) {
