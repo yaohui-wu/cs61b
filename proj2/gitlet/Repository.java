@@ -134,10 +134,13 @@ public class Repository {
      * files staged for addition and removal.
      */
     public static void commit(String message) {
-        commit(message, getId());
+        commit(message, getId(), null);
     }
     
-    private static void commit(String message, String firstParent) {
+    private static void commit(
+        String message,
+        String firstParent,
+        String secondParent) {
         StagingArea stage = StagingArea.load();
         String error;
         if (stage.isEmpty()) {
@@ -148,7 +151,12 @@ public class Repository {
             error = "Please enter a commit message.";
             Main.exit(error);
         }
-        Commit commit = new Commit(message, firstParent);
+        Commit commit;
+        if (secondParent == null) {
+            commit = new Commit(message, firstParent);
+        } else {
+            commit = new Commit(message, firstParent, secondParent);
+        }
         Map<String, String> blobs = commit.getBlobs();
         Map<String, String> addition = stage.getAddition();
         // Updates the files staged for addition.
@@ -502,10 +510,35 @@ public class Repository {
         }
         Commit current = getCommit();
         Commit given = getCommit(givenId);
-        Map<String, String> splitBlobs = split.getBlobs();
         Map<String, String> currentBlobs = current.getBlobs();
         Map<String, String> givenBlobs = given.getBlobs();
+        Map<String, String> splitBlobs = split.getBlobs();
         boolean conflict = false;
+        for (String file : currentBlobs.keySet()) {
+            boolean presentCurrent = currentBlobs.containsKey(file);
+            boolean presentGiven = givenBlobs.containsKey(file);
+            boolean presentSplit = splitBlobs.containsKey(file);
+            boolean modifiedCurrent = false;
+            boolean modifiedGiven = false;
+            boolean onlyModifiedGiven = false;
+            if (presentCurrent && presentGiven && presentSplit) {
+                String currentBlobId = currentBlobs.get(file);
+                String givenBlobId = givenBlobs.get(file);
+                String splitBlobId = split.getBlobs().get(file);
+                modifiedCurrent = !currentBlobId.equals(splitBlobId);
+                modifiedGiven = !givenBlobId.equals(splitBlobId);
+                onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
+            }
+            boolean onlyPresentGiven = presentGiven && !presentCurrent
+                && !presentSplit;
+            if (onlyModifiedGiven || onlyPresentGiven) {
+                checkoutFile(givenId, file);
+                add(file);
+            } else if (!presentCurrent && !modifiedCurrent && presentSplit) {
+                rm(file);
+                currentBlobs.remove(file);
+            }
+        }
         String message = "Merged " + branch + " into " + getBranch() + ".";
         commit(message, currentId, givenId);
         if (conflict) {
@@ -551,20 +584,19 @@ public class Repository {
     }
 
     private static String conflictContent(
-            String file,
-            Commit current,
-            Commit given
-        ) {
+        String file,
+        Map<String, String> currentBlobs,
+        Map<String, String> givenBlobs) {
         String content = "<<<<<<< HEAD\n";
-        if (current.getBlobs().containsKey(file)) {
+        if (currentBlobs.containsKey(file)) {
             content += readContentsAsString(
-                join(Blob.BLOBS, current.getBlobs().get(file))
+                join(Blob.BLOBS, currentBlobs.get(file))
             );
         }
         content += "=======\n";
-        if (given.getBlobs().containsKey(file)) {
+        if (givenBlobs.containsKey(file)) {
             content += readContentsAsString(
-                join(Blob.BLOBS, given.getBlobs().get(file))
+                join(Blob.BLOBS, givenBlobs.get(file))
             );
         }
         content += ">>>>>>>\n";
