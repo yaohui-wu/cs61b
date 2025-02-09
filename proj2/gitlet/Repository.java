@@ -504,12 +504,21 @@ public class Repository {
         Map<String, String> givenBlobs = given.getBlobs();
         for (String file : currentBlobs.keySet()) {
             String splitFile = splitBlobs.get(file);
-            boolean modifiedGiven = !givenBlobs.get(file).equals(splitFile);
-            boolean modifiedCurrent = !currentBlobs.get(file).equals(splitFile);
             boolean inSplit = splitBlobs.containsKey(file);
             boolean inGiven = givenBlobs.containsKey(file);
             boolean inCurrent = currentBlobs.containsKey(file);
-            boolean conflict = !currentBlobs.get(file).equals(givenBlobs.get(file));
+            boolean modifiedGiven = false;
+            boolean modifiedCurrent = false;
+            if (inSplit && inGiven) {
+                modifiedGiven = !splitFile.equals(givenBlobs.get(file));
+            }
+            if (inSplit && inCurrent) {
+                modifiedCurrent = !splitFile.equals(currentBlobs.get(file));
+            }
+            boolean conflict = false;
+            if (modifiedCurrent && modifiedGiven) {
+                conflict = !splitFile.equals(currentBlobs.get(file));
+            }
             if (modifiedGiven && !modifiedCurrent || !inSplit && inGiven) {
                 /*
                  * File was modified in the given branch but not in the
