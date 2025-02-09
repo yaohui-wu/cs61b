@@ -491,8 +491,7 @@ public class Repository {
     public static void merge(String branch) {
         validateMerge(branch);
         // Latest common ancestor of the current and given branches.
-        Commit split = findSplit(branch);
-        String splitId = split.getId();
+        String splitId = findSplit(branch);
         String givenId = Branch.getId(branch);
         if (splitId.equals(givenId)) {
             // The split point is the same commit as the given branch.
@@ -508,67 +507,10 @@ public class Repository {
             System.out.println("Current branch fast-forwarded.");
             return;
         }
-        Commit current = getCommit();
-        Commit given = getCommit(givenId);
-        Map<String, String> currentBlobs = current.getBlobs();
-        Map<String, String> givenBlobs = given.getBlobs();
-        Map<String, String> splitBlobs = split.getBlobs();
-        boolean hasConflict = false;
-        for (String file : currentBlobs.keySet()) {
-            boolean presentCurrent = currentBlobs.containsKey(file);
-            boolean presentGiven = givenBlobs.containsKey(file);
-            boolean presentSplit = splitBlobs.containsKey(file);
-            boolean modifiedCurrent = false;
-            boolean modifiedGiven = false;
-            String currentBlobId = null;
-            String givenBlobId = null;
-            String splitBlobId = null;
-            if (presentCurrent) {
-                currentBlobId = currentBlobs.get(file);
-            }
-            if (presentGiven) {
-                givenBlobId = givenBlobs.get(file);
-            }
-            if (presentSplit) {
-                splitBlobId = splitBlobs.get(file);
-            }
-            if (presentCurrent && presentSplit) {
-                modifiedCurrent = !currentBlobId.equals(splitBlobId);
-            }
-            if (presentGiven && presentSplit) {
-                modifiedGiven = !givenBlobId.equals(splitBlobId);
-            }
-            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
-            boolean onlyPresentGiven = presentGiven && !presentCurrent
-                && !presentSplit;
-            boolean conflict = false;
-            if (onlyModifiedGiven || onlyPresentGiven) {
-                checkoutFile(givenId, file);
-                add(file);
-            } else if (!modifiedCurrent && !presentGiven && presentSplit) {
-                rm(file);
-                currentBlobs.remove(file);
-            } else if (presentCurrent && presentGiven && presentSplit) {
-                conflict = !currentBlobId.equals(givenBlobId);
-            } else if (presentCurrent && !presentGiven && presentSplit) {
-                conflict = modifiedCurrent;
-            } else if (!presentCurrent && presentGiven && presentSplit) {
-                conflict = modifiedGiven;
-            } else if (presentCurrent && presentGiven && !presentSplit) {
-                conflict = !currentBlobId.equals(givenBlobId);
-            }
-            if (conflict) {
-                hasConflict = true;
-                String conflictContents = conflictContent(
-                    file, currentBlobs, givenBlobs
-                );
-                writeContents(join(CWD, file), (Object) conflictContents);
-                add(file);
-            }
-        }
+        boolean conflict = mergeBranch(currentId, givenId, splitId);
         String message = "Merged " + branch + " into " + getBranch() + ".";
         commit(message, currentId, givenId);
-        if (hasConflict) {
+        if (conflict) {
             System.out.println("Encountered a merge conflict.");
         }
     }
@@ -587,14 +529,14 @@ public class Repository {
         }
     }
 
-    private static Commit findSplit(String branch) {
+    private static String findSplit(String branch) {
         Commit current = getCommit();
         Commit given = getCommit(Branch.getId(branch));
         List<String> currentAncestors = getAncestors(current);
         List<String> givenAncestors = getAncestors(given);
         for (String id : currentAncestors) {
             if (givenAncestors.contains(id)) {
-                return getCommit(id);
+                return id;
             }
         }
         return null;
@@ -610,23 +552,64 @@ public class Repository {
         return ancestors;
     }
 
+    private static boolean mergeBranch(
+        String current,
+        String given,
+        String split) {
+            boolean conflict = false;
+            Map<String, String> currentBlobs = getCommit(current).getBlobs();
+            Map<String, String> givenBlobs = getCommit(given).getBlobs();
+            Map<String, String> splitBlobs = getCommit(split).getBlobs();
+            for (String file : givenBlobs.keySet()) {
+                String currentBlobId = currentBlobs.get(file);
+                String givenBlobId = givenBlobs.get(file);
+                String splitBlobId = splitBlobs.get(file);
+                boolean modifiedCurrent = false;
+                boolean modifiedGiven = false;
+                if (splitBlobId != null) {
+                    modifiedCurrent = !splitBlobId.equals(currentBlobId);
+                    modifiedGiven = !splitBlobId.equals(givenBlobId);
+                }
+                boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
+                boolean onlyPresentGiven = false;
+                if (currentBlobId == null && splitBlobId == null) {
+                    onlyPresentGiven = true;
+                }
+                if (onlyModifiedGiven || onlyPresentGiven) {
+                    checkoutFile(given, file);
+                    add(file);
+                }
+            }
+            for (String file : currentBlobs.keySet()) {
+                String currentBlobId = currentBlobs.get(file);
+                String givenBlobId = givenBlobs.get(file);
+                String splitBlobId = splitBlobs.get(file);
+                if (splitBlobId != null
+                    && currentBlobId.equals(splitBlobId)
+                    && givenBlobId == null) {
+                    rm(file);
+                }
+            }
+            return conflict;
+        }
+
     private static String conflictContent(
         String file,
         Map<String, String> currentBlobs,
         Map<String, String> givenBlobs) {
-        String content = "<<<<<<< HEAD\n";
-        if (currentBlobs.containsKey(file)) {
-            content += readContentsAsString(
-                join(Blob.BLOBS, currentBlobs.get(file))
-            );
-        }
-        content += "=======\n";
-        if (givenBlobs.containsKey(file)) {
-            content += readContentsAsString(
-                join(Blob.BLOBS, givenBlobs.get(file))
-            );
-        }
-        content += ">>>>>>>\n";
-        return content;
+            String content = "<<<<<<< HEAD\n";
+            if (currentBlobs.containsKey(file)) {
+                content += readContentsAsString(
+                    join(Blob.BLOBS, currentBlobs.get(file))
+                );
+            }
+            content += "=======\n";
+            if (givenBlobs.containsKey(file)) {
+                content += readContentsAsString(
+                    join(Blob.BLOBS, givenBlobs.get(file))
+                );
+            }
+            content += ">>>>>>>\n";
+            return content;
     }
 }
