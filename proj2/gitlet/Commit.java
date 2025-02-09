@@ -21,9 +21,9 @@ public class Commit implements Serializable {
     private String timestamp;
     // SHA-1 ID of the commit.
     private String id;
-    // SHA-1 ID of the first parent commit.
+    // SHA-1 ID of the first parent reference.
     private String firstParent;
-    // SHA-1 ID of the second parent commit.
+    // SHA-1 ID of the second parent reference for merges.
     private String secondParent;
     // Maps the file name to the blob ID.
     private Map<String, String> blobs;
@@ -43,6 +43,12 @@ public class Commit implements Serializable {
         timestamp = timestamp(Instant.now());
         firstParent = firstParentId;
         blobs = Commit.load(firstParentId).getBlobs();
+        id = hash();
+    }
+
+    public Commit(String msg, String firstParentId, String secondParentId) {
+        this(msg, firstParentId);
+        secondParent = secondParentId;
         id = hash();
     }
 
@@ -82,11 +88,23 @@ public class Commit implements Serializable {
     }
 
     public static Commit load(String id) {
+        if (id.length() < UID_LENGTH) {
+            id = findCommit(id);
+        }
         File file = join(COMMITS, id);
         if (!file.exists()) {
             return null;
         }
         return readObject(file, Commit.class);
+    }
+
+    private static String findCommit(String id) {
+        for (String file : COMMITS.list()) {
+            if (file.startsWith(id)) {
+                return file;
+            }
+        }
+        return null;
     }
 
     @Override

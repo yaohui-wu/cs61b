@@ -4,6 +4,7 @@ import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -29,9 +30,9 @@ public class Repository {
         Blob.BLOBS.mkdir();
         StagingArea stage = new StagingArea();
         stage.save();
-        Commit initCommit = new Commit();
-        initCommit.save();
-        Branch.setId(DEFAULT_BRANCH, initCommit.getId());
+        Commit commit = new Commit();
+        commit.save();
+        Branch.setId(DEFAULT_BRANCH, commit.getId());
         HEAD.setBranch(DEFAULT_BRANCH);
     }
 
@@ -43,9 +44,14 @@ public class Repository {
         }
     }
 
+    /** Returns the name of the current branch. */
+    private static String getBranch() {
+        return HEAD.getBranch();
+    }
+
     /** Returns the ID of the current commit in the current branch. */
     private static String getId() {
-        return Branch.getId(HEAD.getBranch());
+        return Branch.getId(getBranch());
     }
 
     /** Returns the current commit in the current branch. */
@@ -60,7 +66,7 @@ public class Repository {
 
     /** Returns a list of all commit IDs. */
     private static List<String> getIds() {
-        return plainFilenamesIn(Commit.COMMITS);
+        return Arrays.asList(Commit.COMMITS.list());
     }
 
     /** Returns a list of all the branches of the repository. */
@@ -154,7 +160,7 @@ public class Repository {
             blobs.remove(file);
         }
         // The new commit becomes the current commit.
-        Branch.setId(HEAD.getBranch(), commit.getId());
+        Branch.setId(getBranch(), commit.getId());
         // The staging area is cleared after a commit.
         stage.clear();
         stage.save();
@@ -240,7 +246,7 @@ public class Repository {
     private static void printBranches() {
         System.out.println("=== Branches ===");
         for (String branch : getBranches()) {
-            if (branch.equals(HEAD.getBranch())) {
+            if (branch.equals(getBranch())) {
                 System.out.print("*");
             }
             System.out.println(branch);
@@ -368,11 +374,7 @@ public class Repository {
     /** 
      * Takes all files in the commit at the head of the given branch, and puts
      * them in the working directory, overwriting the versions of the files
-     * that are already there if they exist. Also, at the end of this command,
-     * the given branch will now be considered the current branch (HEAD). Any
-     * files that are tracked in the current branch but are not present in the
-     * checked out branch are deleted. The staging area is cleared, unless the
-     * checked out branch is the current branch.
+     * that are already there if they exist.
      */
     private static void checkoutBranch(String branch) {
         File branchFile = join(Branch.BRANCHES, branch);
@@ -381,11 +383,12 @@ public class Repository {
             error = "No such branch exists.";
             Main.exit(error);
         }
-        if (branch.equals(HEAD.getBranch())) {
+        if (branch.equals(getBranch())) {
             error = "No need to checkout the current branch.";
             Main.exit(error);
         }
         checkoutCommit(Branch.getId(branch));
+        // The given branch is now the current branch.
         HEAD.setBranch(branch);
     }
 
@@ -442,15 +445,19 @@ public class Repository {
     public static void rmBranch(String branch) {
         File branchFile = join(Branch.BRANCHES, branch);
         String error;
-        if (!branchFile.exists()) {
-            error = "A branch with that name does not exist.";
-            Main.exit(error);
-        }
-        if (branch.equals(HEAD.getBranch())) {
+        validateBranch(branch);
+        if (branch.equals(getBranch())) {
             error = "Cannot remove the current branch.";
             Main.exit(error);
         }
         branchFile.delete();
+    }
+
+    private static void validateBranch(String branch) {
+        if (!join(Branch.BRANCHES, branch).exists()) {
+            String error = "A branch with that name does not exist.";
+            Main.exit(error);
+        }
     }
 
     public static void reset() {
@@ -468,11 +475,115 @@ public class Repository {
             Main.exit(error);
         }
         checkoutCommit(id);
-        Branch.setId(HEAD.getBranch(), id);
+        Branch.setId(getBranch(), id);
     }
 
     /** Merges files from the given branch into the current branch. */
     public static void merge(String branch) {
-        throw new UnsupportedOperationException();
+        validateMerge(branch);
+        // Latest common ancestor of the current and given branches.
+        Commit split = findSplit(branch);
+        String splitId = split.getId();
+        if (splitId.equals(Branch.getId(branch))) {
+            // The split point is the same commit as the given branch.
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (splitId.equals(getId())) {
+            // The split point is the current branch.
+            // Checks out the given branch.
+            checkoutBranch(branch);
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+        Commit current = getCommit();
+        String givenId = Branch.getId(branch);
+        Commit given = getCommit(givenId);
+        Map<String, String> splitBlobs = split.getBlobs();
+        Map<String, String> currentBlobs = current.getBlobs();
+        Map<String, String> givenBlobs = given.getBlobs();
+        for (String file : currentBlobs.keySet()) {
+            String splitFile = splitBlobs.get(file);
+            boolean modifiedGiven = !givenBlobs.get(file).equals(splitFile);
+            boolean modifiedCurrent = !currentBlobs.get(file).equals(splitFile);
+            boolean inSplit = splitBlobs.containsKey(file);
+            boolean inGiven = givenBlobs.containsKey(file);
+            boolean inCurrent = currentBlobs.containsKey(file);
+            boolean conflict = !currentBlobs.get(file).equals(givenBlobs.get(file));
+            if (modifiedGiven && !modifiedCurrent || !inSplit && inGiven) {
+                /*
+                 * File was modified in the given branch but not in the
+                 * current branch since the split point.
+                 */
+                /*
+                 * File was not present at the split point and is present
+                 * only in the given branch.
+                 */
+                // Changes the file to the version in the given branch.
+                checkoutFile(givenId, file);
+                // Automatically stages the file for addition.
+                add(file);
+            } else if (inSplit && !modifiedCurrent && !inCurrent) {
+                /*
+                 * File was present at the split point, is unmodified in the current
+                 * branch, and is absent in the given branch is removed and
+                 * untracked.
+                 */
+                rm(file);
+                currentBlobs.remove(file);
+            } else if (modifiedCurrent && modifiedGiven) {
+                if (conflict) {
+                    // File was modified in both branches in different ways.
+                    String content = "<<<<<<< HEAD\n";
+                    content += readContentsAsString(join(Blob.BLOBS, currentBlobs.get(file)));
+                    content += "=======\n";
+                    content += readContentsAsString(join(Blob.BLOBS, givenBlobs.get(file)));
+                    content += ">>>>>>>\n";
+                    writeContents(join(CWD, file), content);
+                    System.out.println("Encountered a merge conflict.");
+                }
+            }
+        }
+        String message = "Merged " + branch + " into " + getBranch() + ".";
+        Commit commit = new Commit(message, getId());
+        commit.save();
+        Branch.setId(getBranch(), commit.getId());
+    }
+
+    private static void validateMerge(String branch) {
+        StagingArea stage = StagingArea.load();
+        if (!stage.isEmpty()) {
+            // There are staged additions or removals present.
+            String error = "You have uncommitted changes.";
+            Main.exit(error);
+        }
+        validateBranch(branch);
+        if (branch.equals(getBranch())) {
+            String error = "Cannot merge a branch with itself.";
+            Main.exit(error);
+        }
+    }
+
+    private static Commit findSplit(String branch) {
+        Commit current = getCommit();
+        Commit given = getCommit(Branch.getId(branch));
+        List<String> currentAncestors = getAncestors(current);
+        List<String> givenAncestors = getAncestors(given);
+        for (String id : currentAncestors) {
+            if (givenAncestors.contains(id)) {
+                return getCommit(id);
+            }
+        }
+        return null;
+    }
+
+    private static List<String> getAncestors(Commit commit) {
+        List<String> ancestors = new ArrayList<>();
+        String id = commit.getId();
+        while (id != null) {
+            ancestors.add(id);
+            id = getCommit(id).getfirstParent();
+        }
+        return ancestors;
     }
 }
