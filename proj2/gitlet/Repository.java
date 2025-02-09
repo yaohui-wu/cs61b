@@ -540,7 +540,10 @@ public class Repository {
             }
         }
         String message = "Merged " + branch + " into " + getBranch() + ".";
-        commit(message, currentId, givenId);
+        StagingArea stage = StagingArea.load();
+        if (!stage.isEmpty()) {
+            commit(message, currentId, givenId);
+        }
         if (conflict) {
             System.out.println("Encountered a merge conflict.");
         }
