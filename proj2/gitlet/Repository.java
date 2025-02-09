@@ -513,38 +513,62 @@ public class Repository {
         Map<String, String> currentBlobs = current.getBlobs();
         Map<String, String> givenBlobs = given.getBlobs();
         Map<String, String> splitBlobs = split.getBlobs();
-        boolean conflict = false;
+        boolean hasConflict = false;
         for (String file : currentBlobs.keySet()) {
             boolean presentCurrent = currentBlobs.containsKey(file);
             boolean presentGiven = givenBlobs.containsKey(file);
             boolean presentSplit = splitBlobs.containsKey(file);
             boolean modifiedCurrent = false;
             boolean modifiedGiven = false;
-            boolean onlyModifiedGiven = false;
-            if (presentCurrent && presentGiven && presentSplit) {
-                String currentBlobId = currentBlobs.get(file);
-                String givenBlobId = givenBlobs.get(file);
-                String splitBlobId = split.getBlobs().get(file);
-                modifiedCurrent = !currentBlobId.equals(splitBlobId);
-                modifiedGiven = !givenBlobId.equals(splitBlobId);
-                onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
+            String currentBlobId = null;
+            String givenBlobId = null;
+            String splitBlobId = null;
+            if (presentCurrent) {
+                currentBlobId = currentBlobs.get(file);
             }
+            if (presentGiven) {
+                givenBlobId = givenBlobs.get(file);
+            }
+            if (presentSplit) {
+                splitBlobId = splitBlobs.get(file);
+            }
+            if (presentCurrent && presentSplit) {
+                modifiedCurrent = !currentBlobId.equals(splitBlobId);
+            }
+            if (presentGiven && presentSplit) {
+                modifiedGiven = !givenBlobId.equals(splitBlobId);
+            }
+            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
             boolean onlyPresentGiven = presentGiven && !presentCurrent
                 && !presentSplit;
+            boolean conflict = false;
             if (onlyModifiedGiven || onlyPresentGiven) {
                 checkoutFile(givenId, file);
                 add(file);
-            } else if (!presentCurrent && !modifiedCurrent && presentSplit) {
+            } else if (!modifiedCurrent && !presentGiven && presentSplit) {
                 rm(file);
                 currentBlobs.remove(file);
+            } else if (presentCurrent && presentGiven && presentSplit) {
+                conflict = !currentBlobId.equals(givenBlobId);
+            } else if (presentCurrent && !presentGiven && presentSplit) {
+                conflict = modifiedCurrent;
+            } else if (!presentCurrent && presentGiven && presentSplit) {
+                conflict = modifiedGiven;
+            } else if (presentCurrent && presentGiven && !presentSplit) {
+                conflict = !currentBlobId.equals(givenBlobId);
+            }
+            if (conflict) {
+                hasConflict = true;
+                String conflictContents = conflictContent(
+                    file, currentBlobs, givenBlobs
+                );
+                writeContents(join(CWD, file), (Object) conflictContents);
+                add(file);
             }
         }
         String message = "Merged " + branch + " into " + getBranch() + ".";
-        StagingArea stage = StagingArea.load();
-        if (!stage.isEmpty()) {
-            commit(message, currentId, givenId);
-        }
-        if (conflict) {
+        commit(message, currentId, givenId);
+        if (hasConflict) {
             System.out.println("Encountered a merge conflict.");
         }
     }

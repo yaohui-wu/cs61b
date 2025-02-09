@@ -122,7 +122,7 @@ public class Commit implements Serializable {
             + messageString;
     }
 
-    private String shortId(String id) {
-        return id.substring(0, 7);
+    private String shortId(String uid) {
+        return uid.substring(0, 7);
     }
 }
