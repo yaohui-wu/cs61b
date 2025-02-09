@@ -1,23 +1,23 @@
 # Gitlet Design Document
 
-**Name**: Yaohui Wu
+**Name**:
 
 ## Classes and Data Structures
 
-### Commit
+### Class 1
 
 #### Fields
 
-1. message - The message of the commit.
-2. timestamp - The timestamp of the commit.
+1. Field 1
+2. Field 2
 
 
-### Repository
+### Class 2
 
 #### Fields
 
-1. CWD - The current working directory.
-2. GITLET_DIR - The .gitlet directory.
+1. Field 1
+2. Field 2
 
 
 ## Algorithms

@@ -111,8 +111,18 @@ public class Commit implements Serializable {
     public String toString() {
         String headerString = "===\n";
         String idString = "commit " + id + "\n";
+        String mergeString = "";
+        if (secondParent != null) {
+            mergeString = "Merge: " + mergeId(firstParent) + " "
+            + mergeId(secondParent) + "\n";
+        }
         String timestampString = "Date: " + timestamp + "\n";
         String messageString = message + "\n";
-        return headerString + idString + timestampString + messageString;
+        return headerString + idString + mergeString + timestampString
+            + messageString;
+    }
+
+    private String mergeId(String id) {
+        return id.substring(0, 7);
     }
 }

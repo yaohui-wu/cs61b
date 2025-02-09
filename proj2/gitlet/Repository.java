@@ -413,7 +413,8 @@ public class Repository {
         // Checks out all the files in the given commit.
         for (String fileName : fileNames) {
             File file = join(CWD, fileName);
-            byte[] contents = readContents(join(Blob.BLOBS, blobs.get(fileName)));
+            String blobId = blobs.get(fileName);
+            byte[] contents = readContents(join(Blob.BLOBS, blobId));
             writeContents(file, (Object) contents);
         }
         /*
@@ -484,12 +485,15 @@ public class Repository {
         // Latest common ancestor of the current and given branches.
         Commit split = findSplit(branch);
         String splitId = split.getId();
-        if (splitId.equals(Branch.getId(branch))) {
+        String givenId = Branch.getId(branch);
+        if (splitId.equals(givenId)) {
             // The split point is the same commit as the given branch.
-            System.out.println("Given branch is an ancestor of the current branch.");
+            String msg = "Given branch is an ancestor of the current branch.";
+            System.out.println(msg);
             return;
         }
-        if (splitId.equals(getId())) {
+        String currentId = getId();
+        if (splitId.equals(currentId)) {
             // The split point is the current branch.
             // Checks out the given branch.
             checkoutBranch(branch);
@@ -497,66 +501,16 @@ public class Repository {
             return;
         }
         Commit current = getCommit();
-        String givenId = Branch.getId(branch);
         Commit given = getCommit(givenId);
         Map<String, String> splitBlobs = split.getBlobs();
         Map<String, String> currentBlobs = current.getBlobs();
         Map<String, String> givenBlobs = given.getBlobs();
-        for (String file : currentBlobs.keySet()) {
-            String splitFile = splitBlobs.get(file);
-            boolean inSplit = splitBlobs.containsKey(file);
-            boolean inGiven = givenBlobs.containsKey(file);
-            boolean inCurrent = currentBlobs.containsKey(file);
-            boolean modifiedGiven = false;
-            boolean modifiedCurrent = false;
-            if (inSplit && inGiven) {
-                modifiedGiven = !splitFile.equals(givenBlobs.get(file));
-            }
-            if (inSplit && inCurrent) {
-                modifiedCurrent = !splitFile.equals(currentBlobs.get(file));
-            }
-            boolean conflict = false;
-            if (modifiedCurrent && modifiedGiven) {
-                conflict = !splitFile.equals(currentBlobs.get(file));
-            }
-            if (modifiedGiven && !modifiedCurrent || !inSplit && inGiven) {
-                /*
-                 * File was modified in the given branch but not in the
-                 * current branch since the split point.
-                 */
-                /*
-                 * File was not present at the split point and is present
-                 * only in the given branch.
-                 */
-                // Changes the file to the version in the given branch.
-                checkoutFile(givenId, file);
-                // Automatically stages the file for addition.
-                add(file);
-            } else if (inSplit && !modifiedCurrent && !inCurrent) {
-                /*
-                 * File was present at the split point, is unmodified in the current
-                 * branch, and is absent in the given branch is removed and
-                 * untracked.
-                 */
-                rm(file);
-                currentBlobs.remove(file);
-            } else if (modifiedCurrent && modifiedGiven) {
-                if (conflict) {
-                    // File was modified in both branches in different ways.
-                    String content = "<<<<<<< HEAD\n";
-                    content += readContentsAsString(join(Blob.BLOBS, currentBlobs.get(file)));
-                    content += "=======\n";
-                    content += readContentsAsString(join(Blob.BLOBS, givenBlobs.get(file)));
-                    content += ">>>>>>>\n";
-                    writeContents(join(CWD, file), content);
-                    System.out.println("Encountered a merge conflict.");
-                }
-            }
-        }
+        boolean conflict = false;
         String message = "Merged " + branch + " into " + getBranch() + ".";
-        Commit commit = new Commit(message, getId());
-        commit.save();
-        Branch.setId(getBranch(), commit.getId());
+        commit(message, currentId, givenId);
+        if (conflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
     }
 
     private static void validateMerge(String branch) {
@@ -594,5 +548,26 @@ public class Repository {
             id = getCommit(id).getfirstParent();
         }
         return ancestors;
+    }
+
+    private static String conflictContent(
+            String file,
+            Commit current,
+            Commit given
+        ) {
+        String content = "<<<<<<< HEAD\n";
+        if (current.getBlobs().containsKey(file)) {
+            content += readContentsAsString(
+                join(Blob.BLOBS, current.getBlobs().get(file))
+            );
+        }
+        content += "=======\n";
+        if (given.getBlobs().containsKey(file)) {
+            content += readContentsAsString(
+                join(Blob.BLOBS, given.getBlobs().get(file))
+            );
+        }
+        content += ">>>>>>>\n";
+        return content;
     }
 }
