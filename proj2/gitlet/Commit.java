@@ -113,8 +113,8 @@ public class Commit implements Serializable {
         String idString = "commit " + id + "\n";
         String mergeString = "";
         if (secondParent != null) {
-            mergeString = "Merge: " + shortId(firstParent) + " "
-                + shortId(secondParent) + "\n";
+            mergeString = "Merge: " + mergeId(firstParent) + " "
+                + mergeId(secondParent) + "\n";
         }
         String timestampString = "Date: " + timestamp + "\n";
         String messageString = message + "\n";
@@ -122,7 +122,7 @@ public class Commit implements Serializable {
             + messageString;
     }
 
-    private String shortId(String uid) {
+    private String mergeId(String uid) {
         return uid.substring(0, 7);
     }
 }

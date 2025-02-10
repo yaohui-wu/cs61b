@@ -491,8 +491,8 @@ public class Repository {
     public static void merge(String branch) {
         validateMerge(branch);
         // Latest common ancestor of the current and given branches.
-        String splitId = findSplit(branch);
         String givenId = Branch.getId(branch);
+        String splitId = findSplit(branch);
         if (splitId.equals(givenId)) {
             // The split point is the same commit as the given branch.
             String msg = "Given branch is an ancestor of the current branch.";
@@ -527,6 +527,18 @@ public class Repository {
             String error = "Cannot merge a branch with itself.";
             Main.exit(error);
         }
+        Commit given = getCommit(Branch.getId(branch));
+        for (String file : getUntrackedFiles()) {
+            /*
+             * An untracked file in the current commit would be overwritten or
+             * deleted by the merge.
+             */
+            if (given.getBlobs().containsKey(file)) {
+                String error = "There is an untracked file in the way; "
+                    + "delete it, or add and commit it first.";
+                Main.exit(error);
+            }
+        }
     }
 
     private static String findSplit(String branch) {
@@ -556,60 +568,81 @@ public class Repository {
         String current,
         String given,
         String split) {
-            boolean conflict = false;
-            Map<String, String> currentBlobs = getCommit(current).getBlobs();
-            Map<String, String> givenBlobs = getCommit(given).getBlobs();
-            Map<String, String> splitBlobs = getCommit(split).getBlobs();
-            for (String file : givenBlobs.keySet()) {
-                String currentBlobId = currentBlobs.get(file);
-                String givenBlobId = givenBlobs.get(file);
-                String splitBlobId = splitBlobs.get(file);
-                boolean modifiedCurrent = false;
-                boolean modifiedGiven = false;
-                if (splitBlobId != null) {
-                    modifiedCurrent = !splitBlobId.equals(currentBlobId);
-                    modifiedGiven = !splitBlobId.equals(givenBlobId);
-                }
-                boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
-                boolean onlyPresentGiven = false;
-                if (currentBlobId == null && splitBlobId == null) {
-                    onlyPresentGiven = true;
-                }
-                if (onlyModifiedGiven || onlyPresentGiven) {
-                    checkoutFile(given, file);
-                    add(file);
-                }
+        boolean conflict = false;
+        Map<String, String> currentBlobs = getCommit(current).getBlobs();
+        Map<String, String> givenBlobs = getCommit(given).getBlobs();
+        Map<String, String> splitBlobs = getCommit(split).getBlobs();
+        for (String file : givenBlobs.keySet()) {
+            String currentBlobId = currentBlobs.get(file);
+            String givenBlobId = givenBlobs.get(file);
+            String splitBlobId = splitBlobs.get(file);
+            boolean modifiedCurrent = false;
+            boolean modifiedGiven = false;
+            if (splitBlobId != null) {
+                modifiedCurrent = !splitBlobId.equals(currentBlobId);
+                modifiedGiven = !splitBlobId.equals(givenBlobId);
             }
-            for (String file : currentBlobs.keySet()) {
-                String currentBlobId = currentBlobs.get(file);
-                String givenBlobId = givenBlobs.get(file);
-                String splitBlobId = splitBlobs.get(file);
-                if (splitBlobId != null
-                    && currentBlobId.equals(splitBlobId)
-                    && givenBlobId == null) {
-                    rm(file);
-                }
+            /*
+             * File was modified in the given branch but not the current
+             * branch.
+             */
+            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
+            boolean onlyPresentGiven = false;
+            if (currentBlobId == null && splitBlobId == null) {
+                // File is present only in the given branch.
+                onlyPresentGiven = true;
             }
-            return conflict;
+            if (onlyModifiedGiven || onlyPresentGiven) {
+                checkoutFile(given, file);
+                add(file);
+            }
         }
+        for (String file : currentBlobs.keySet()) {
+            String currentBlobId = currentBlobs.get(file);
+            String givenBlobId = givenBlobs.get(file);
+            String splitBlobId = splitBlobs.get(file);
+            if (splitBlobId != null
+                && currentBlobId.equals(splitBlobId)
+                && givenBlobId == null) {
+                /*
+                 * File is present at the split point, was unmodified in the
+                 * current branch, and is absent in the given branch.
+                 */
+                rm(file);
+            } else if (currentBlobId != null) {
+                /*
+                 * Contents of both are changed and different from other.
+                 */
+                conflict = !currentBlobId.equals(givenBlobId);
+            } else if (currentBlobId == null && splitBlobId != null) {
+                /*
+                 * Contents of one are changed and the other file is deleted
+                 */
+                conflict = splitBlobId.equals(givenBlobId);
+            } else if (givenBlobId == null && splitBlobId != null) {
+                conflict = splitBlobId.equals(currentBlobId);
+            }
+        }
+        return conflict;
+    }
 
     private static String conflictContent(
         String file,
         Map<String, String> currentBlobs,
         Map<String, String> givenBlobs) {
-            String content = "<<<<<<< HEAD\n";
-            if (currentBlobs.containsKey(file)) {
-                content += readContentsAsString(
-                    join(Blob.BLOBS, currentBlobs.get(file))
-                );
-            }
-            content += "=======\n";
-            if (givenBlobs.containsKey(file)) {
-                content += readContentsAsString(
-                    join(Blob.BLOBS, givenBlobs.get(file))
-                );
-            }
-            content += ">>>>>>>\n";
-            return content;
+        String content = "<<<<<<< HEAD\n";
+        if (currentBlobs.containsKey(file)) {
+            content += readContentsAsString(
+                join(Blob.BLOBS, currentBlobs.get(file))
+            );
+        }
+        content += "=======\n";
+        if (givenBlobs.containsKey(file)) {
+            content += readContentsAsString(
+                join(Blob.BLOBS, givenBlobs.get(file))
+            );
+        }
+        content += ">>>>>>>\n";
+        return content;
     }
 }
