@@ -593,7 +593,8 @@ public class Repository {
                 modifiedGiven = !givenBlobId.equals(splitBlobId);
             }
             if (!modifiedCurrent && modifiedGiven
-                || currentBlobId == null && splitBlobId == null) {
+                || currentBlobId == null && givenBlobId != null
+                && splitBlobId == null) {
                 /*
                  * File is modified in the given branch but not the current
                  * branch or file is present only in the given branch.
