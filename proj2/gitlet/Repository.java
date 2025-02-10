@@ -601,6 +601,7 @@ public class Repository {
                  */
                 checkoutFile(given, file);
                 add(file);
+                continue;
             } else if (splitBlobId != null && currentBlobId != null
                 && currentBlobId.equals(splitBlobId)
                 && givenBlobId == null) {
@@ -609,6 +610,7 @@ public class Repository {
                  * current branch, and is absent in the given branch.
                  */
                 rm(file);
+                continue;
             } else if (currentBlobId != null && givenBlobId != null) {
                 // Contents of both are changed and different from other.
                 conflict = currentBlobId.equals(givenBlobId);
