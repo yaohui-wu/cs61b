@@ -576,16 +576,19 @@ public class Repository {
         Map<String, String> currentBlobs = getCommit(current).getBlobs();
         Map<String, String> givenBlobs = getCommit(given).getBlobs();
         Map<String, String> splitBlobs = getCommit(split).getBlobs();
-        for (String file : givenBlobs.keySet()) {
+        Set<String> files = currentBlobs.keySet();
+        files.addAll(givenBlobs.keySet());
+        for (String file : files) {
             boolean conflict = false;
             String currentBlobId = currentBlobs.get(file);
             String givenBlobId = givenBlobs.get(file);
             String splitBlobId = splitBlobs.get(file);
             boolean modifiedCurrent = false;
             boolean modifiedGiven = false;
-            if (splitBlobId != null && currentBlobId != null) {
-                modifiedCurrent = !splitBlobId.equals(currentBlobId);
-                modifiedGiven = !splitBlobId.equals(givenBlobId);
+            if (currentBlobId != null && givenBlobId != null
+                && splitBlobId != null) {
+                modifiedCurrent = !currentBlobId.equals(splitBlobId);
+                modifiedGiven = !givenBlobId.equals(splitBlobId);
             }
             if (!modifiedCurrent && modifiedGiven
                 || currentBlobId == null && splitBlobId == null) {
@@ -595,23 +598,7 @@ public class Repository {
                  */
                 checkoutFile(given, file);
                 add(file);
-                continue;
-            } else if (splitBlobId != null && currentBlobId == null) {
-                conflict = !givenBlobId.equals(splitBlobId);
-            }
-            if (conflict) {
-                writeContents(join(CWD, file), conflictContent(
-                    file, currentBlobs, givenBlobs));
-                add(file);
-                hasConflict = true;
-            }
-        }
-        for (String file : currentBlobs.keySet()) {
-            boolean conflict = false;
-            String currentBlobId = currentBlobs.get(file);
-            String givenBlobId = givenBlobs.get(file);
-            String splitBlobId = splitBlobs.get(file);
-            if (splitBlobId != null
+            } else if (splitBlobId != null && currentBlobId != null
                 && currentBlobId.equals(splitBlobId)
                 && givenBlobId == null) {
                 /*
@@ -619,20 +606,16 @@ public class Repository {
                  * current branch, and is absent in the given branch.
                  */
                 rm(file);
-                continue;
-            } else if (splitBlobId != null
-                && !currentBlobId.equals(splitBlobId)
-                && givenBlobId != null
-                && !givenBlobId.equals(splitBlobId)) {
-                /*
-                 * Contents of both are changed and different from other.
-                 */
-                conflict = !currentBlobId.equals(givenBlobId);
-            } else if (splitBlobId != null && givenBlobId == null) {
-                /*
-                 * Contents of one are changed and the other file is deleted.
-                 */
+            } else if (currentBlobId != null && givenBlobId != null) {
+                // Contents of both are changed and different from other.
+                conflict = currentBlobId.equals(givenBlobId);
+            } else if (currentBlobId != null && givenBlobId == null
+                && splitBlobId != null) {
+                // Contents of one are changed and the other file is deleted.
                 conflict = !currentBlobId.equals(splitBlobId);
+            } else if (currentBlobId == null && givenBlobId != null
+                && splitBlobId != null) {
+                conflict = !givenBlobId.equals(splitBlobId);
             }
             if (conflict) {
                 writeContents(join(CWD, file), conflictContent(
