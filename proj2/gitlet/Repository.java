@@ -590,14 +590,14 @@ public class Repository {
             if (!modifiedCurrent && modifiedGiven
                 || currentBlobId == null && splitBlobId == null) {
                 /*
-                 * File was modified in the given branch but not the current
-                 * branch.
+                 * File is modified in the given branch but not the current
+                 * branch or file is present only in the given branch.
                  */
-                // File is present only in the given branch.
                 checkoutFile(given, file);
                 add(file);
+                continue;
             } else if (splitBlobId != null && currentBlobId == null) {
-                conflict = !splitBlobId.equals(givenBlobId);
+                conflict = !givenBlobId.equals(splitBlobId);
             }
             if (conflict) {
                 writeContents(join(CWD, file), conflictContent(
@@ -619,7 +619,11 @@ public class Repository {
                  * current branch, and is absent in the given branch.
                  */
                 rm(file);
-            } else if (givenBlobId != null) {
+                continue;
+            } else if (splitBlobId != null
+                && !currentBlobId.equals(splitBlobId)
+                && givenBlobId != null
+                && !givenBlobId.equals(splitBlobId)) {
                 /*
                  * Contents of both are changed and different from other.
                  */
@@ -628,7 +632,7 @@ public class Repository {
                 /*
                  * Contents of one are changed and the other file is deleted.
                  */
-                conflict = !splitBlobId.equals(currentBlobId);
+                conflict = !currentBlobId.equals(splitBlobId);
             }
             if (conflict) {
                 writeContents(join(CWD, file), conflictContent(
