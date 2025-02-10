@@ -564,40 +564,50 @@ public class Repository {
         return ancestors;
     }
 
+    /**
+     * Merges files from the given branch into the current branch. Returns
+     * true if a merge conflict occurs.
+     */
     private static boolean mergeBranch(
         String current,
         String given,
         String split) {
-        boolean conflict = false;
+        boolean hasConflict = false;
         Map<String, String> currentBlobs = getCommit(current).getBlobs();
         Map<String, String> givenBlobs = getCommit(given).getBlobs();
         Map<String, String> splitBlobs = getCommit(split).getBlobs();
         for (String file : givenBlobs.keySet()) {
+            boolean conflict = false;
             String currentBlobId = currentBlobs.get(file);
             String givenBlobId = givenBlobs.get(file);
             String splitBlobId = splitBlobs.get(file);
             boolean modifiedCurrent = false;
             boolean modifiedGiven = false;
-            if (splitBlobId != null) {
+            if (splitBlobId != null && currentBlobId != null) {
                 modifiedCurrent = !splitBlobId.equals(currentBlobId);
                 modifiedGiven = !splitBlobId.equals(givenBlobId);
             }
-            /*
-             * File was modified in the given branch but not the current
-             * branch.
-             */
-            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
-            boolean onlyPresentGiven = false;
-            if (currentBlobId == null && splitBlobId == null) {
+            if (!modifiedCurrent && modifiedGiven
+                || currentBlobId == null && splitBlobId == null) {
+                /*
+                 * File was modified in the given branch but not the current
+                 * branch.
+                 */
                 // File is present only in the given branch.
-                onlyPresentGiven = true;
-            }
-            if (onlyModifiedGiven || onlyPresentGiven) {
                 checkoutFile(given, file);
                 add(file);
+            } else if (splitBlobId != null && currentBlobId == null) {
+                conflict = !splitBlobId.equals(givenBlobId);
+            }
+            if (conflict) {
+                writeContents(join(CWD, file), conflictContent(
+                    file, currentBlobs, givenBlobs));
+                add(file);
+                hasConflict = true;
             }
         }
         for (String file : currentBlobs.keySet()) {
+            boolean conflict = false;
             String currentBlobId = currentBlobs.get(file);
             String givenBlobId = givenBlobs.get(file);
             String splitBlobId = splitBlobs.get(file);
@@ -605,25 +615,29 @@ public class Repository {
                 && currentBlobId.equals(splitBlobId)
                 && givenBlobId == null) {
                 /*
-                 * File is present at the split point, was unmodified in the
+                 * File was present at the split point, is unmodified in the
                  * current branch, and is absent in the given branch.
                  */
                 rm(file);
-            } else if (currentBlobId != null) {
+            } else if (givenBlobId != null) {
                 /*
                  * Contents of both are changed and different from other.
                  */
                 conflict = !currentBlobId.equals(givenBlobId);
-            } else if (currentBlobId == null && splitBlobId != null) {
+            } else if (splitBlobId != null && givenBlobId == null) {
                 /*
-                 * Contents of one are changed and the other file is deleted
+                 * Contents of one are changed and the other file is deleted.
                  */
-                conflict = splitBlobId.equals(givenBlobId);
-            } else if (givenBlobId == null && splitBlobId != null) {
-                conflict = splitBlobId.equals(currentBlobId);
+                conflict = !splitBlobId.equals(currentBlobId);
+            }
+            if (conflict) {
+                writeContents(join(CWD, file), conflictContent(
+                    file, currentBlobs, givenBlobs));
+                add(file);
+                hasConflict = true;
             }
         }
-        return conflict;
+        return hasConflict;
     }
 
     private static String conflictContent(
