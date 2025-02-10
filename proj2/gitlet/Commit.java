@@ -74,6 +74,10 @@ public class Commit implements Serializable {
     public String getfirstParent() {
         return firstParent;
     }
+
+    public String getSecondParent() {
+        return secondParent;
+    }
     
     public Map<String, String> getBlobs() {
         return blobs;

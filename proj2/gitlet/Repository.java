@@ -4,10 +4,12 @@ import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
+import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Queue;
+import java.util.LinkedList;
 
 /**
  * Represents a Gitlet repository.
@@ -492,15 +494,15 @@ public class Repository {
     public static void merge(String branch) {
         validateMerge(branch);
         // Latest common ancestor of the current and given branches.
+        String currentId = getId();
         String givenId = Branch.getId(branch);
-        String splitId = findSplit(branch);
+        String splitId = findSplit(currentId, givenId);
         if (splitId.equals(givenId)) {
             // The split point is the same commit as the given branch.
             String msg = "Given branch is an ancestor of the current branch.";
             System.out.println(msg);
             return;
         }
-        String currentId = getId();
         if (splitId.equals(currentId)) {
             // The split point is the current branch.
             // Checks out the given branch.
@@ -542,27 +544,49 @@ public class Repository {
         }
     }
 
-    private static String findSplit(String branch) {
-        Commit current = getCommit();
-        Commit given = getCommit(Branch.getId(branch));
-        List<String> currentAncestors = getAncestors(current);
-        List<String> givenAncestors = getAncestors(given);
-        for (String id : currentAncestors) {
-            if (givenAncestors.contains(id)) {
+    /**
+     * Returns the ID of the latest common ancestor of the current and given
+     * branches.
+     */
+    private static String findSplit(String currentId, String givenId) {
+        // Breadth-first search to find the latest common ancestor.
+        Queue<String> queue = new LinkedList<>(); // Commit IDs to visit.
+        Set<String> visited = new HashSet<>(); // Visited commit IDs.
+        queue.add(currentId);
+        // Visits all the ancestors of the current branch.
+        while (!queue.isEmpty()) {
+            String id = queue.poll();
+            Commit commit = getCommit(id);
+            visited.add(id);
+            // Adds the first and second parents to the queue.
+            String firstParent = commit.getfirstParent();
+            if (firstParent != null) {
+                queue.add(firstParent);
+            }
+            String secondParent = commit.getSecondParent();
+            if (secondParent != null) {
+                queue.add(secondParent);
+            }
+        }
+        queue.add(givenId);
+        // Visits the ancestors of the given branch until a common ancestor.
+        while (!queue.isEmpty()) {
+            String id = queue.poll();
+            if (visited.contains(id)) {
+                // Found the latest common ancestor.
                 return id;
+            }
+            Commit commit = getCommit(id);
+            String firstParent = commit.getfirstParent();
+            if (firstParent != null) {
+                queue.add(firstParent);
+            }
+            String secondParent = commit.getSecondParent();
+            if (secondParent != null) {
+                queue.add(secondParent);
             }
         }
         return null;
-    }
-
-    private static List<String> getAncestors(Commit commit) {
-        List<String> ancestors = new ArrayList<>();
-        String id = commit.getId();
-        while (id != null) {
-            ancestors.add(id);
-            id = getCommit(id).getfirstParent();
-        }
-        return ancestors;
     }
 
     /**
@@ -577,7 +601,7 @@ public class Repository {
         Map<String, String> currentBlobs = getCommit(current).getBlobs();
         Map<String, String> givenBlobs = getCommit(given).getBlobs();
         Map<String, String> splitBlobs = getCommit(split).getBlobs();
-        Set<String> files = new TreeSet<>();
+        Set<String> files = new HashSet<>();
         files.addAll(currentBlobs.keySet());
         files.addAll(givenBlobs.keySet());
         for (String file : files) {
@@ -585,14 +609,9 @@ public class Repository {
             String currentBlobId = currentBlobs.get(file);
             String givenBlobId = givenBlobs.get(file);
             String splitBlobId = splitBlobs.get(file);
-            boolean modifiedCurrent = false;
-            boolean modifiedGiven = false;
             if (currentBlobId != null && givenBlobId != null
-                && splitBlobId != null) {
-                modifiedCurrent = !currentBlobId.equals(splitBlobId);
-                modifiedGiven = !givenBlobId.equals(splitBlobId);
-            }
-            if (!modifiedCurrent && modifiedGiven || currentBlobId == null
+                && splitBlobId != null && currentBlobId.equals(splitBlobId)
+                && !givenBlobId.equals(splitBlobId) || currentBlobId == null
                 && givenBlobId != null && splitBlobId == null) {
                 /*
                  * File is modified in the given branch but not the current
