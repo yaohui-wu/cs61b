@@ -4,7 +4,7 @@ import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -577,7 +577,7 @@ public class Repository {
         Map<String, String> currentBlobs = getCommit(current).getBlobs();
         Map<String, String> givenBlobs = getCommit(given).getBlobs();
         Map<String, String> splitBlobs = getCommit(split).getBlobs();
-        Set<String> files = new HashSet<>();
+        Set<String> files = new TreeSet<>();
         files.addAll(currentBlobs.keySet());
         files.addAll(givenBlobs.keySet());
         for (String file : files) {
@@ -592,10 +592,8 @@ public class Repository {
                 modifiedCurrent = !currentBlobId.equals(splitBlobId);
                 modifiedGiven = !givenBlobId.equals(splitBlobId);
             }
-            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
-            boolean onlyPresentGiven = currentBlobId == null
-                && givenBlobId != null && splitBlobId == null;
-            if (onlyModifiedGiven || onlyPresentGiven) {
+            if (!modifiedCurrent && modifiedGiven || currentBlobId == null
+                && givenBlobId != null && splitBlobId == null) {
                 /*
                  * File is modified in the given branch but not the current
                  * branch or file is present only in the given branch.
