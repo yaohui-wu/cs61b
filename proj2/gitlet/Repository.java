@@ -592,16 +592,16 @@ public class Repository {
                 modifiedCurrent = !currentBlobId.equals(splitBlobId);
                 modifiedGiven = !givenBlobId.equals(splitBlobId);
             }
-            if (!modifiedCurrent && modifiedGiven
-                || currentBlobId == null && givenBlobId != null
-                && splitBlobId == null) {
+            boolean onlyModifiedGiven = !modifiedCurrent && modifiedGiven;
+            boolean onlyPresentGiven = currentBlobId == null
+                && givenBlobId != null && splitBlobId == null;
+            if (onlyModifiedGiven || onlyPresentGiven) {
                 /*
                  * File is modified in the given branch but not the current
                  * branch or file is present only in the given branch.
                  */
                 checkoutFile(given, file);
                 add(file);
-                continue;
             } else if (splitBlobId != null && currentBlobId != null
                 && currentBlobId.equals(splitBlobId)
                 && givenBlobId == null) {
@@ -610,8 +610,9 @@ public class Repository {
                  * current branch, and is absent in the given branch.
                  */
                 rm(file);
-                continue;
-            } else if (currentBlobId != null && givenBlobId != null) {
+            } else if (currentBlobId != null && givenBlobId != null
+                && splitBlobId != null && !currentBlobId.equals(splitBlobId)
+                && !givenBlobId.equals(splitBlobId)) {
                 // Contents of both are changed and different from other.
                 conflict = currentBlobId.equals(givenBlobId);
             } else if (currentBlobId != null && givenBlobId == null
@@ -621,10 +622,19 @@ public class Repository {
             } else if (currentBlobId == null && givenBlobId != null
                 && splitBlobId != null) {
                 conflict = !givenBlobId.equals(splitBlobId);
+            } else if (splitBlobId == null && currentBlobId != null
+                && givenBlobId != null) {
+                /*
+                 * File was absent at the split point and has different
+                 * contents in the given and current branches.
+                 */
+                conflict = !currentBlobId.equals(givenBlobId);
             }
             if (conflict) {
-                writeContents(join(CWD, file), conflictContent(
-                    file, currentBlobs, givenBlobs));
+                writeContents(
+                    join(CWD, file),
+                    conflictContent(file, currentBlobs, givenBlobs)
+                );
                 add(file);
                 hasConflict = true;
             }
