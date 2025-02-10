@@ -4,6 +4,7 @@ import static gitlet.Utils.*;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -576,7 +577,8 @@ public class Repository {
         Map<String, String> currentBlobs = getCommit(current).getBlobs();
         Map<String, String> givenBlobs = getCommit(given).getBlobs();
         Map<String, String> splitBlobs = getCommit(split).getBlobs();
-        Set<String> files = currentBlobs.keySet();
+        Set<String> files = new HashSet<>();
+        files.addAll(currentBlobs.keySet());
         files.addAll(givenBlobs.keySet());
         for (String file : files) {
             boolean conflict = false;
