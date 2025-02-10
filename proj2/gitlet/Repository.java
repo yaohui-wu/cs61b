@@ -614,7 +614,7 @@ public class Repository {
                 && splitBlobId != null && !currentBlobId.equals(splitBlobId)
                 && !givenBlobId.equals(splitBlobId)) {
                 // Contents of both are changed and different from other.
-                conflict = currentBlobId.equals(givenBlobId);
+                conflict = !currentBlobId.equals(givenBlobId);
             } else if (currentBlobId != null && givenBlobId == null
                 && splitBlobId != null) {
                 // Contents of one are changed and the other file is deleted.
