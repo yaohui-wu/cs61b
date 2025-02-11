@@ -4,7 +4,7 @@ import static gitlet.Utils.*;
 import java.io.File;
 import java.io.Serializable;
 
-/** Blobs: the saved contents of files. */
+/** Represents a blob in a Gitlet repository. */
 public class Blob implements Serializable {
     public static final File BLOBS = join(Repository.GITLET, "blobs");
 

@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import java.util.Set;
 import java.util.TreeSet;
 
-/** Staging area to store files for addition or removal before committing. */
+/** Represents the staging area in a Gitlet version control system. */
 public class StagingArea implements Serializable {
     private static final File STAGE = join(Repository.GITLET, "stage");
     // Maps the name of the file staged for addition to the blob ID.

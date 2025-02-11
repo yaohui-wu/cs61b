@@ -3,7 +3,7 @@ package gitlet;
 import static gitlet.Utils.*;
 import java.io.File;
 
-/** The HEAD file stores the name of the current branch. */
+/** Represents a reference to the current commit in the Gitlet repository. */
 public class HEAD {
     public static final File HEAD = join(Repository.GITLET, "HEAD");
 
