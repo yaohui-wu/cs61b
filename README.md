@@ -1,1 +1,1 @@
-# UC Berkeley CS61B: Data Structures
+# UC Berkeley CS61B Data Structures
