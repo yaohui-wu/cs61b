@@ -1,2 +1,1 @@
-# University of California, Berkeley
-## CS 61B Data Structures, Spring 2021
+# UC Berkeley CS61B: Data Structures
