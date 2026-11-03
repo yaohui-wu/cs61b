@@ -11,7 +11,7 @@ of the test cases and received full credit on the autograder.
 - **Course Name:** Data Structures
 - **Course Version:** Spring 2021
 - **Course Website:** [CS 61B Spring 2021][course-website]
-- **Technologies:** Java OpenJDK 15+
+- **Technologies:** Java 15+ (OpenJDK)
 - **Coursework Timeline:** January 10, 2025 – February 10, 2025
 
 ## Coursework
@@ -20,7 +20,9 @@ of the test cases and received full credit on the autograder.
 
 | Lab                                                         | Solution              |
 | ----------------------------------------------------------- | --------------------- |
+| [Lab 1 Setup: Setting Up Your Computer][lab1setup]          | N/A                   |
 | [Lab 1: IntelliJ, Java, Git][lab1]                          | [lab1][lab1-solution] |
+| [Lab 2 Setup: Library Setup][lab2setup]                     | N/A                   |
 | [Lab 2: JUnit Tests and Debugging][lab2]                    | [lab2][lab2-solution] |
 | [Lab 3: Timing Tests and Randomized Comparison Tests][lab3] | [lab3][lab3-solution] |
 | [Lab 4: Git and Debugging][lab4]                            | [lab4][lab4-solution] |
@@ -45,7 +47,9 @@ of the test cases and received full credit on the autograder.
 
 <!-- Lab instructions -->
 
+[lab1setup]: https://sp21.datastructur.es/materials/lab/lab1setup/lab1setup
 [lab1]: https://sp21.datastructur.es/materials/lab/lab1/lab1
+[lab2setup]: https://sp21.datastructur.es/materials/lab/lab2setup/lab2setup
 [lab2]: https://sp21.datastructur.es/materials/lab/lab2/lab2
 [lab3]: https://sp21.datastructur.es/materials/lab/lab3/lab3
 [lab4]: https://sp21.datastructur.es/materials/lab/lab4/lab4
