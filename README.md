@@ -11,7 +11,7 @@ of the test cases and received full credit on the autograder.
 - **Course Name:** Data Structures
 - **Course Version:** Spring 2021
 - **Course Website:** [CS 61B Spring 2021][course-website]
-- **Technologies:** Java
+- **Technologies:** Java OpenJDK 15+
 - **Coursework Timeline:** January 10, 2025 – February 10, 2025
 
 ## Coursework
