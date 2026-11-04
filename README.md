@@ -1,8 +1,8 @@
 # CS 61B: Data Structures
 
-This repository contains my selected solutions to the labs and projects for UC
-Berkeley's _CS 61B: Data Structures_ course. All selected solutions passed 100%
-of the test cases and received full credit on the autograder.
+This repository contains my solutions to the labs and projects for UC Berkeley's
+_CS 61B: Data Structures_ course. All solutions passed 100% of the test cases
+and received full credit on the autograder.
 
 ## Course Details
 
@@ -45,7 +45,7 @@ of the test cases and received full credit on the autograder.
 
 [course-website]: https://sp21.datastructur.es/
 
-<!-- Lab instructions -->
+<!-- Lab specifications -->
 
 [lab1setup]: https://sp21.datastructur.es/materials/lab/lab1setup/lab1setup
 [lab1]: https://sp21.datastructur.es/materials/lab/lab1/lab1
@@ -58,7 +58,7 @@ of the test cases and received full credit on the autograder.
 [lab7]: https://sp21.datastructur.es/materials/lab/lab7/lab7
 [lab8]: https://sp21.datastructur.es/materials/lab/lab8/lab8
 
-<!-- Project instructions -->
+<!-- Project specifications -->
 
 [project0]: https://sp21.datastructur.es/materials/proj/proj0/proj0
 [project1]: https://sp21.datastructur.es/materials/proj/proj1/proj1
